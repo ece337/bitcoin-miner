@@ -2,8 +2,8 @@ module compressionSHA
 (
 	input wire clk,
 	input wire n_rst,
-	input [31:0] w_i,
-	input [31:0] k_i,
+	input wire [31:0] w_i,
+	input wire [31:0] k_i,
 	output reg [31:0] a,
 	output reg [31:0] b,
 	output reg [31:0] c,

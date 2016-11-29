@@ -2,11 +2,11 @@ module SHAcomputationalBlock
 (
 	input wire clk,
 	input wire n_rst,
-	input [511:0] inputSHAMsg,
+	input reg [511:0] inputSHAMsg,
 	input wire beginComputation,
 	input wire enableComputation,
 	output wire computationComplete,
-	output wire [255:0] shaOutput
+	output reg [255:0] shaOutput
 );
 
 reg [63:0][31:0] k,wFromExpandSHA;
@@ -84,7 +84,7 @@ initial begin
 	k[63] = 32'hc67178f2;
 end
 
-compressionCounter comprCount (
+compressionCounter CCOUNT (
 	.clk(clk),
 	.n_rst(n_rst),
 	.enable(enableComputation),
@@ -93,7 +93,7 @@ compressionCounter comprCount (
 	.currentCount(countFromComprCount)
 );
 
-expansionCounter expandCount (
+expansionCounter ECOUNT (
 	.clk(clk),
 	.n_rst(n_rst),
 	.enable(enableComputation),
@@ -102,7 +102,7 @@ expansionCounter expandCount (
 	.currentCount(countFromExpandCount)
 );
 
-expansionSHA expandSHA (
+expansionSHA ESHA (
 	.clk(clk),
 	.n_rst(n_rst),
 	.inputMsg(inputSHAMsg),
@@ -111,7 +111,7 @@ expansionSHA expandSHA (
 	.w(wFromExpandSHA)
 );
 
-compressionSHA comprSHA (
+compressionSHA CSHA (
 	.clk(clk),
 	.n_rst(n_rst),
 	.w_i(wFromExpandSHA[countFromExpandCount]),

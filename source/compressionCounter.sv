@@ -8,7 +8,7 @@ module compressionCounter
 	output reg [6:0] currentCount
 );
 
-CCOUNT #(0, 64) counter (
+counter #(0, 64) CCOUNT (
 	.clk(clk),
 	.n_rst(n_rst),
 	.enable(enable),
