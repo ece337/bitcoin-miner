@@ -136,6 +136,11 @@ void sha256_final(SHA256_CTX *ctx, uchar hash[])
    ctx->data[58] = ctx->bitlen[1] >> 8; 
    ctx->data[57] = ctx->bitlen[1] >> 16;  
    ctx->data[56] = ctx->bitlen[1] >> 24; 
+   /*printf("\nBitlen = %08x%08x\n", ctx->bitlen[1], ctx->bitlen[0]);
+   int l;
+   for (l = 63; l >= 56; l--) {
+   	printf("data[%0d] = %x\n", l, ctx->data[l]);
+   }*/
    sha256_transform(ctx,ctx->data);
    
    // Since this implementation uses little endian byte ordering and SHA uses big endian,
@@ -167,15 +172,15 @@ void print_hash(unsigned char hash[])
    printf("\n");
 }
 
-int main()
+int main(int argc, char * argv[])
 {
-   unsigned char text1[]={"hello"},
-                 text2[]={"abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq"},
-                 text3[]={""},
-                 hash[32];
+   //unsigned char text1[]={"hello"},
+   //              text2[]={"abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq"},
+   //              text3[]={""},
+   unsigned char   hash[32];
    int idx;
    SHA256_CTX ctx;
-
+   /*
    // Hash one
    sha256_init(&ctx);
    sha256_update(&ctx,text1,strlen(text1));
@@ -197,6 +202,24 @@ int main()
    sha256_final(&ctx,hash);
    printf("text3: %s -> ", text3);
    print_hash(hash);
-
+   */
+   
+   int i = 1;
+   while (i < argc) {
+	sha256_init(&ctx);
+	sha256_update(&ctx,argv[i],strlen(argv[i]));
+	sha256_final(&ctx,hash);
+	printf("argv[%d]: %s -> ", i, argv[i]);
+	print_hash(hash);
+   	i++;
+   }
+   if (i == 1) {
+	sha256_init(&ctx);
+	sha256_update(&ctx,"",0);
+	sha256_final(&ctx,hash);
+	printf("empty: %s -> ", "");
+	print_hash(hash);
+   }
+   
    return 0;
 }
