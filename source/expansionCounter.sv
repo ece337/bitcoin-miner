@@ -8,7 +8,7 @@ module expansionCounter
 	output reg [6:0] currentCount
 );
 
-eCount #(16, 64) counter (
+ECOUNT #(16, 64) counter (
 	.clk(clk),
 	.n_rst(n_rst),
 	.enable(enable),
