@@ -2,20 +2,22 @@ module SHAcomputationalBlock
 (
 	input wire clk,
 	input wire n_rst,
-	input reg [511:0] inputSHAMsg,
+	input reg [446:0] inputMsg,
+	input reg [63:0] inputLength,
+	input wire newMsg,
 	input wire beginComputation,
-	input wire enableComputation,
 	output wire computationComplete,
-	output reg [255:0] shaOutput
+	output reg [255:0] SHAoutput
 );
 
-reg [63:0][31:0] k,wFromExpandSHA;
-wire completeFromComprCount, completeFromExpandCount;
-reg [6:0] countFromComprCount, countFromExpandCount;
+reg [511:0] inputSHAMsg;
+reg [63:0][31:0] k,w_expSHA;
+wire preprocessDone, cComplete, eComplete;
+reg [6:0] cCount, eCount;
 reg [31:0] aOut, bOut, cOut, dOut, eOut, fOut, gOut, hOut,
 h0, h1, h2, h3, h4, h5, h6, h7;
 
-assign shaOutput = {h0,h1,h2,h3,h4,h5,h6,h7};
+assign SHAoutput = {h0,h1,h2,h3,h4,h5,h6,h7};
 
 initial begin
 	k[0] = 32'h428a2f98;
@@ -84,38 +86,44 @@ initial begin
 	k[63] = 32'hc67178f2;
 end
 
-compressionCounter CCOUNT (
-	.clk(clk),
-	.n_rst(n_rst),
-	.enable(enableComputation),
-	.restart(beginComputation),
-	.complete(completeFromComprCount),
-	.currentCount(countFromComprCount)
+preprocessor PRE (
+	.inputMsg(inputMsg),
+	.length(inputLength),
+	.newMsg(newMsg),
+	.processedMsg(inputSHAMsg),
+	.done(preprocessDone)
 );
 
 expansionCounter ECOUNT (
 	.clk(clk),
 	.n_rst(n_rst),
-	.enable(enableComputation),
 	.restart(beginComputation),
-	.complete(completeFromExpandCount),
-	.currentCount(countFromExpandCount)
+	.complete(eComplete),
+	.currentCount(eCount)
 );
 
 expansionSHA ESHA (
 	.clk(clk),
 	.n_rst(n_rst),
 	.inputMsg(inputSHAMsg),
-	.i(countFromExpandCount),
-	.loadInitial(beginComputation),
-	.w(wFromExpandSHA)
+	.i(eCount),
+	.loadInitial(preprocessDone),
+	.w(w_expSHA)
+);
+
+compressionCounter CCOUNT (
+	.clk(clk),
+	.n_rst(n_rst),
+	.restart(eComplete),
+	.complete(cComplete),
+	.currentCount(cCount)
 );
 
 compressionSHA CSHA (
 	.clk(clk),
 	.n_rst(n_rst),
-	.w_i(wFromExpandSHA[countFromExpandCount]),
-	.k_i(k[countFromExpandCount]),
+	.w_i(w_expSHA[eCount]),
+	.k_i(k[eCount]),
 	.a(aOut),
 	.b(bOut),
 	.c(cOut),
@@ -126,8 +134,7 @@ compressionSHA CSHA (
 	.h(hOut)
 );
 
-always_comb
-begin
+always_comb begin
 	h0 = 32'h6a09e667 + aOut;
 	h1 = 32'hbb67ae85 + bOut;
 	h2 = 32'h3c6ef372 + cOut;

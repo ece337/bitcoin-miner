@@ -6,7 +6,6 @@ module counter
 (
 	input wire clk,
 	input wire n_rst,
-	input wire enable,
 	input wire restart,
 	output wire complete,
 	output reg [6:0] currentCount
@@ -27,7 +26,7 @@ always_comb begin
 	nextCount = currentCount;
 	if (restart)
 		nextCount = RESTART_VAL;
-	else if (enable) begin
+	else begin
 		if (currentCount < MAX_VAL)
 			nextCount = currentCount + 1;
 		else
