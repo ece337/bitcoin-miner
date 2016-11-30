@@ -2,8 +2,7 @@ module SHAcomputationalBlock
 (
 	input wire clk,
 	input wire n_rst,
-	input reg [446:0] inputMsg,
-	input reg [63:0] inputLength,
+	input reg [439:0] inputMsg,
 	input wire beginComputation,
 	output wire computationComplete,
 	output reg [255:0] SHAoutput
@@ -90,7 +89,6 @@ preprocessor PRE (
 	.clk(clk),
 	.n_rst(n_rst),
 	.inputMsg(inputMsg),
-	.length(inputLength),
 	.beginPreprocess(beginComputation),
 	.processedMsg(inputSHAMsg),
 	.done(preprocessDone)

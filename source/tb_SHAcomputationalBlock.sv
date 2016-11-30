@@ -1,7 +1,7 @@
 module tb_SHAcomputationalBlock ();
 
 reg tb_clk, tb_n_rst, tb_beginComputation, tb_computationComplete;
-reg [446:0] tb_inputMsg;
+reg [439:0] tb_inputMsg;
 reg [63:0] tb_inputLength;
 reg [255:0] tb_SHAoutput;
 
@@ -36,7 +36,7 @@ end
 endtask
 
 task sendMsg;
-	input [446:0] msg;
+	input [439:0] msg;
 	input [63:0] length;
 	input [255:0] expectedOutput;
 begin
@@ -45,7 +45,7 @@ begin
 	tb_beginComputation = 1'b1;
 	#(CLK_PERIOD);
 	tb_beginComputation = 1'b0;
-	#(CLK_PERIOD*10000);
+	#(CLK_PERIOD*230);
 	
 	testcase = testcase + 1;
 	assert (tb_computationComplete == 1'b1)
@@ -64,7 +64,7 @@ initial begin
 	reset;
 	
 	// Test case 1 - check correct SHA output
-	sendMsg(447'd97, 64'd7, 256'hca978112ca1bbdcafac231b39a23dc4da786eff8147c4e72b9807785afee48bb);
+	sendMsg(439'd97, 64'd8, 256'hca978112ca1bbdcafac231b39a23dc4da786eff8147c4e72b9807785afee48bb);
 end
 
 endmodule
