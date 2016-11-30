@@ -2,6 +2,7 @@ module compressionSHA
 (
 	input wire clk,
 	input wire n_rst,
+	input wire enable,
 	input wire [31:0] w_i,
 	input wire [31:0] k_i,
 	output reg [31:0] a,
@@ -25,8 +26,7 @@ assign ar2 = {a[1:0],a[31:2]};
 assign ar13 = {a[12:0],a[31:13]};
 assign ar22 = {a[21:0],a[31:22]};
 
-always_ff @ (posedge clk, negedge n_rst)
-begin
+always_ff @ (posedge clk, negedge n_rst) begin
 	if(!n_rst) begin
 		a <= '0;
 		b <= '0;
@@ -48,23 +48,33 @@ begin
 	end
 end
 
-always_comb
-begin
-	s1 = er6 ^ er11 ^ er25;
-	ch = (e & f) ^ ((~e) & g);
-	temp1 = h + s1 + ch + k_i + w_i;
-	s0 = ar2 ^ ar13 ^ ar22;
-	maj = (a & b) ^ (a & c) ^ (b & c);
-	temp2 = s0 + maj;
-
-	nh = g;
-	ng = f;
-	nf = e;
-	ne = d + temp1;
-	nd = c;
-	nc = b;
-	nb = a;
-	na = temp1 + temp2;
+always_comb begin
+	na = a;
+	nb = b;
+	nc = c;
+	nd = d;
+	ne = e;
+	nf = f;
+	ng = g;
+	nh = h;
+	
+	if (enable) begin
+		s1 = er6 ^ er11 ^ er25;
+		ch = (e & f) ^ ((~e) & g);
+		temp1 = h + s1 + ch + k_i + w_i;
+		s0 = ar2 ^ ar13 ^ ar22;
+		maj = (a & b) ^ (a & c) ^ (b & c);
+		temp2 = s0 + maj;
+		
+		nh = g;
+		ng = f;
+		nf = e;
+		ne = d + temp1;
+		nd = c;
+		nc = b;
+		nb = a;
+		na = temp1 + temp2;
+	end
 end
 
 endmodule

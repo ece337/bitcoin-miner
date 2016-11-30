@@ -1,6 +1,6 @@
 module tb_SHAcomputationalBlock ();
 
-reg tb_clk, tb_n_rst, tb_newMsg, tb_beginComputation, tb_computationComplete;
+reg tb_clk, tb_n_rst, tb_beginComputation, tb_computationComplete;
 reg [446:0] tb_inputMsg;
 reg [63:0] tb_inputLength;
 reg [255:0] tb_SHAoutput;
@@ -11,7 +11,6 @@ SHAcomputationalBlock SHA
 	.n_rst(tb_n_rst),
 	.inputMsg(tb_inputMsg),
 	.inputLength(tb_inputLength),
-	.newMsg(tb_newMsg),
 	.beginComputation(tb_beginComputation),
 	.computationComplete(tb_computationComplete),
 	.SHAoutput(tb_SHAoutput)
@@ -42,25 +41,24 @@ task sendMsg;
 	input [255:0] expectedOutput;
 begin
 	tb_inputMsg = msg;
-	tb_newMsg = 1'b1;
+	tb_inputLength = length;
 	tb_beginComputation = 1'b1;
 	#(CLK_PERIOD);
-	tb_newMsg = 1'b0;
 	tb_beginComputation = 1'b0;
 	#(CLK_PERIOD*10000);
 	
 	testcase = testcase + 1;
 	assert (tb_computationComplete == 1'b1)
-	else $error("Test case %0d: SHA computation did not complete in allotted time\n", testcase);
-	assert (tb_SHAoutput == expectedOutput) $info("Test case %0d: SHA output is correct!\n", testcase);
-	else $error("Test case %0d: SHA output did not match expected output\n", testcase);
+	else $error("Test case %0d: FAILURE - SHA computation did not complete in allotted time\n", testcase);
+	assert (tb_SHAoutput == expectedOutput) $info("Test case %0d: SUCCESS - SHA output is correct!\n", testcase);
+	else $error("Test case %0d: FAILURE - SHA output did not match expected output\n", testcase);
 end
 endtask
 
 initial begin
 	tb_n_rst = 1'b1;
-	tb_newMsg = 1'b0;
 	tb_inputMsg = '0;
+	tb_inputLength = '0;
 	tb_beginComputation = 1'b0;
 	
 	reset;

@@ -4,19 +4,19 @@ module SHAcomputationalBlock
 	input wire n_rst,
 	input reg [446:0] inputMsg,
 	input reg [63:0] inputLength,
-	input wire newMsg,
 	input wire beginComputation,
 	output wire computationComplete,
 	output reg [255:0] SHAoutput
 );
 
 reg [511:0] inputSHAMsg;
-reg [63:0][31:0] k,w_expSHA;
-wire preprocessDone, cComplete, eComplete;
-reg [6:0] cCount, eCount;
+reg [63:0][31:0] k, w_extSHA;
+wire preprocessDone, extComplete, comprComplete;
+reg [6:0] extCount, comprCount;
 reg [31:0] aOut, bOut, cOut, dOut, eOut, fOut, gOut, hOut,
 h0, h1, h2, h3, h4, h5, h6, h7;
 
+assign computationComplete = comprComplete;
 assign SHAoutput = {h0,h1,h2,h3,h4,h5,h6,h7};
 
 initial begin
@@ -87,43 +87,60 @@ initial begin
 end
 
 preprocessor PRE (
+	.clk(clk),
+	.n_rst(n_rst),
 	.inputMsg(inputMsg),
 	.length(inputLength),
-	.newMsg(newMsg),
+	.beginPreprocess(beginComputation),
 	.processedMsg(inputSHAMsg),
 	.done(preprocessDone)
 );
 
-expansionCounter ECOUNT (
-	.clk(clk),
-	.n_rst(n_rst),
-	.restart(beginComputation),
-	.complete(eComplete),
-	.currentCount(eCount)
-);
+reg extEnable;
+always_ff @ (posedge clk, negedge n_rst) begin
+	if (!n_rst)
+		extEnable = 1'b0;
+	else if (preprocessDone)
+		extEnable = 1'b1;
+	else if (extComplete)
+		extEnable = 1'b0;
+end
 
-expansionSHA ESHA (
+extensionSHA EXTSHA (
 	.clk(clk),
 	.n_rst(n_rst),
+	.enable(extEnable),
 	.inputMsg(inputSHAMsg),
-	.i(eCount),
-	.loadInitial(preprocessDone),
-	.w(w_expSHA)
+	.i(extCount),
+	.loadInitial(beginComputation),
+	.w(w_extSHA)
 );
 
-compressionCounter CCOUNT (
+counter #(16, 64) EXTCOUNT (
 	.clk(clk),
 	.n_rst(n_rst),
-	.restart(eComplete),
-	.complete(cComplete),
-	.currentCount(cCount)
+	.enable(extEnable),
+	.restart(preprocessDone),
+	.complete(extComplete),
+	.currentCount(extCount)
 );
 
-compressionSHA CSHA (
+reg comprEnable;
+always_ff @ (posedge clk, negedge n_rst) begin
+	if (!n_rst)
+		comprEnable = 1'b0;
+	else if (extComplete)
+		comprEnable = 1'b1;
+	else if (comprComplete)
+		comprEnable = 1'b0;
+end
+
+compressionSHA COMPRSHA (
 	.clk(clk),
 	.n_rst(n_rst),
-	.w_i(w_expSHA[eCount]),
-	.k_i(k[eCount]),
+	.enable(comprEnable),
+	.w_i(w_extSHA[extCount]),
+	.k_i(k[extCount]),
 	.a(aOut),
 	.b(bOut),
 	.c(cOut),
@@ -132,6 +149,15 @@ compressionSHA CSHA (
 	.f(fOut),
 	.g(gOut),
 	.h(hOut)
+);
+
+counter #(0, 64) COMPRCOUNT (
+	.clk(clk),
+	.n_rst(n_rst),
+	.enable(comprEnable),
+	.restart(extComplete),
+	.complete(comprComplete),
+	.currentCount(comprCount)
 );
 
 always_comb begin
