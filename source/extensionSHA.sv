@@ -9,15 +9,6 @@ module extensionSHA
 	output reg [63:0][31:0] w
 );
 
-reg h0 = 32'h6a09e667;
-reg h1 = 32'hbb67ae85;
-reg h2 = 32'h3c6ef372;
-reg h3 = 32'ha54ff53a;
-reg h4 = 32'h510e527f;
-reg h5 = 32'h9b05688c;
-reg h6 = 32'h1f83d9ab;
-reg h7 = 32'h5be0cd19;
-
 reg [63:0] [31:0] nextW;
 reg [31:0] s0;
 reg [31:0] s1;

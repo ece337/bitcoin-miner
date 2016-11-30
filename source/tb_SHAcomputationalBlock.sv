@@ -59,7 +59,7 @@ initial begin
 	reset;
 	
 	// Test case 1 - check correct SHA output
-	sendMsg(439'd97, 256'hca978112ca1bbdcafac231b39a23dc4da786eff8147c4e72b9807785afee48bb);
+	sendMsg(439'd0, 256'he3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855);
 end
 
 endmodule

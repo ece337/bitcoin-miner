@@ -28,14 +28,14 @@ assign ar22 = {a[21:0],a[31:22]};
 
 always_ff @ (posedge clk, negedge n_rst) begin
 	if(!n_rst) begin
-		a <= '0;
-		b <= '0;
-		c <= '0;
-		d <= '0;
-		e <= '0;
-		f <= '0;
-		g <= '0;
-		h <= '0;
+		a <= 32'h6a09e667;
+		b <= 32'hbb67ae85;
+		c <= 32'h3c6ef372;
+		d <= 32'ha54ff53a;
+		e <= 32'h510e527f;
+		f <= 32'h9b05688c;
+		g <= 32'h1f83d9ab;
+		h <= 32'h5be0cd19;
 	end else begin
 		a <= na;
 		b <= nb;
