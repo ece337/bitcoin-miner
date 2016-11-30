@@ -3,7 +3,7 @@ module extensionSHA
 	input wire clk,
 	input wire n_rst,
 	input wire enable,
-	input reg [511:0] inputMsg,
+	input reg [511:0] inputSHAMsg,
 	input wire [6:0] i,
 	input wire loadInitial,
 	output reg [63:0][31:0] w
@@ -28,22 +28,22 @@ always_ff @ (posedge clk, negedge n_rst) begin
 	if(!n_rst)
 		w = '0;
 	else if (loadInitial) begin
-		w[0] = {inputMsg[7:0], inputMsg[15:8], inputMsg[23:16], inputMsg[31:24]};
-		w[1] = {inputMsg[41:32], inputMsg[49:42], inputMsg[55:48], inputMsg[63:56]};
-		w[2] = {inputMsg[71:64], inputMsg[79:72], inputMsg[87:80], inputMsg[95:88]};
-		w[3] = {inputMsg[103:96], inputMsg[111:104], inputMsg[119:112], inputMsg[127:120]};
-		w[4] = {inputMsg[135:128], inputMsg[143:136], inputMsg[151:144], inputMsg[159:152]};
-		w[5] = {inputMsg[167:160], inputMsg[175:168], inputMsg[183:176], inputMsg[191:184]};
-		w[6] = {inputMsg[199:192], inputMsg[207:200], inputMsg[215:208], inputMsg[223:216]};
-		w[7] = {inputMsg[231:224], inputMsg[239:232], inputMsg[247:240], inputMsg[255:248]};
-		w[8] = {inputMsg[263:256], inputMsg[271:264], inputMsg[279:272], inputMsg[287:280]};
-		w[9] = {inputMsg[295:288], inputMsg[303:296], inputMsg[311:304], inputMsg[319:312]};
-		w[10] = {inputMsg[327:320], inputMsg[335:328], inputMsg[343:336], inputMsg[351:344]};
-		w[11] = {inputMsg[359:352], inputMsg[367:360], inputMsg[375:368], inputMsg[383:376]};
-		w[12] = {inputMsg[391:384], inputMsg[399:392], inputMsg[407:400], inputMsg[415:408]};
-		w[13] = {inputMsg[423:416], inputMsg[431:424], inputMsg[446:432], inputMsg[447:440]};
-		w[14] = {inputMsg[455:448], inputMsg[463:456], inputMsg[471:464], inputMsg[479:472]};
-		w[15] = {inputMsg[487:480], inputMsg[495:488], inputMsg[503:496], inputMsg[511:504]};
+		w[15] = inputSHAMsg[31:0];
+		w[14] = inputSHAMsg[63:32];
+		w[13] = inputSHAMsg[95:64];
+		w[12] = inputSHAMsg[127:96];
+		w[11] = inputSHAMsg[159:128];
+		w[10] = inputSHAMsg[191:160];
+		w[9]  = inputSHAMsg[223:192];
+		w[8]  = inputSHAMsg[255:224];
+		w[7]  = inputSHAMsg[287:256];
+		w[6]  = inputSHAMsg[319:288];
+		w[5]  = inputSHAMsg[351:320];
+		w[4]  = inputSHAMsg[383:352];
+		w[3]  = inputSHAMsg[415:384];
+		w[2]  = inputSHAMsg[447:416];
+		w[1]  = inputSHAMsg[479:448];
+		w[0]  = inputSHAMsg[511:480];
 	end else
 		w[i] = nextW[i];
 end

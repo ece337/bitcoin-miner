@@ -108,13 +108,13 @@ extensionSHA EXTSHA (
 	.clk(clk),
 	.n_rst(n_rst),
 	.enable(extEnable),
-	.inputMsg(inputSHAMsg),
+	.inputSHAMsg(inputSHAMsg),
 	.i(extCount),
-	.loadInitial(beginComputation),
+	.loadInitial(preprocessDone),
 	.w(w_extSHA)
 );
 
-counter #(16, 64) EXTCOUNT (
+counter #(16, 63) EXTCOUNT (
 	.clk(clk),
 	.n_rst(n_rst),
 	.enable(extEnable),
@@ -149,7 +149,7 @@ compressionSHA COMPRSHA (
 	.h(hOut)
 );
 
-counter #(0, 64) COMPRCOUNT (
+counter #(0, 63) COMPRCOUNT (
 	.clk(clk),
 	.n_rst(n_rst),
 	.enable(comprEnable),
