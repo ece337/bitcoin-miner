@@ -34,6 +34,12 @@ uint k[64] = {
    0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2
 };
 
+void print_data(SHA256_CTX * ctx) {
+   int i;
+   for (i = 0; i < 64; i++)
+   	printf("%02x", ctx->data[i]);
+   printf("\n");
+}
 
 void sha256_transform(SHA256_CTX *ctx, uchar data[])
 {  
@@ -110,7 +116,11 @@ void sha256_final(SHA256_CTX *ctx, uchar hash[])
 {  
    uint i; 
    
-   i = ctx->datalen; 
+   i = ctx->datalen;
+   
+   // Data before preprocessing
+   printf("Data before preprocessing:\n");
+   print_data(ctx);
    
    // Pad whatever data is left in the buffer. 
    if (ctx->datalen < 56) { 
@@ -128,19 +138,19 @@ void sha256_final(SHA256_CTX *ctx, uchar hash[])
    
    // Append to the padding the total message's length in bits and transform. 
    DBL_INT_ADD(ctx->bitlen[0],ctx->bitlen[1],ctx->datalen * 8);
-   ctx->data[63] = ctx->bitlen[0]; 
-   ctx->data[62] = ctx->bitlen[0] >> 8; 
-   ctx->data[61] = ctx->bitlen[0] >> 16; 
-   ctx->data[60] = ctx->bitlen[0] >> 24; 
-   ctx->data[59] = ctx->bitlen[1]; 
-   ctx->data[58] = ctx->bitlen[1] >> 8; 
-   ctx->data[57] = ctx->bitlen[1] >> 16;  
-   ctx->data[56] = ctx->bitlen[1] >> 24; 
-   /*printf("\nBitlen = %08x%08x\n", ctx->bitlen[1], ctx->bitlen[0]);
-   int l;
-   for (l = 63; l >= 56; l--) {
-   	printf("data[%0d] = %x\n", l, ctx->data[l]);
-   }*/
+   ctx->data[63] = ctx->bitlen[0];
+   ctx->data[62] = ctx->bitlen[0] >> 8;
+   ctx->data[61] = ctx->bitlen[0] >> 16;
+   ctx->data[60] = ctx->bitlen[0] >> 24;
+   ctx->data[59] = ctx->bitlen[1];
+   ctx->data[58] = ctx->bitlen[1] >> 8;
+   ctx->data[57] = ctx->bitlen[1] >> 16; 
+   ctx->data[56] = ctx->bitlen[1] >> 24;
+   
+   // Data after preprocessing
+   printf("Data after preprocessing:\n");
+   print_data(ctx);
+   
    sha256_transform(ctx,ctx->data);
    
    // Since this implementation uses little endian byte ordering and SHA uses big endian,
@@ -157,13 +167,6 @@ void sha256_final(SHA256_CTX *ctx, uchar hash[])
    }  
 }  
 
-/*
-Output should be:
-ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad
-248d6a61d20638b8e5c026930c3e6039a33ce45964ff2167f6ecedd419db06c1
-cdc76e5c9914fb9281a1c7e284d73e67f1809a48a497200e046d39ccc7112cd0
-*/
-
 void print_hash(unsigned char hash[])
 {
    int idx;
@@ -174,35 +177,9 @@ void print_hash(unsigned char hash[])
 
 int main(int argc, char * argv[])
 {
-   //unsigned char text1[]={"hello"},
-   //              text2[]={"abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq"},
-   //              text3[]={""},
-   unsigned char   hash[32];
+   uchar hash[32];
    int idx;
    SHA256_CTX ctx;
-   /*
-   // Hash one
-   sha256_init(&ctx);
-   sha256_update(&ctx,text1,strlen(text1));
-   sha256_final(&ctx,hash);
-   printf("text1: %s -> ", text1);
-   print_hash(hash);
-
-   // Hash two
-   sha256_init(&ctx);
-   sha256_update(&ctx,text2,strlen(text2));
-   sha256_final(&ctx,hash);
-   printf("text2: %s -> ", text2);
-   print_hash(hash);
-
-   // Hash three
-   sha256_init(&ctx);
-   for (idx=0; idx < 100000; ++idx)
-      sha256_update(&ctx,text3,strlen(text3));
-   sha256_final(&ctx,hash);
-   printf("text3: %s -> ", text3);
-   print_hash(hash);
-   */
    
    int i = 1;
    while (i < argc) {
