@@ -58,8 +58,18 @@ initial begin
 	
 	reset;
 	
-	// Test case 1 - check correct SHA output
-	sendMsg(439'd0, 256'he3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855);
+	// Test case 1 - check correct SHA output for input ''
+	sendMsg(440'd0,          256'he3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855);
+	
+	reset;
+	
+	// Test case 2 - check correct SHA output for input 'hello'
+	sendMsg(440'h68656c6c6f, 256'h2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824);
+	
+	reset;
+	
+	// Test case 3 - check correct SHA output for input 'a'
+	sendMsg(440'd97,         256'hca978112ca1bbdcafac231b39a23dc4da786eff8147c4e72b9807785afee48bb);
 end
 
 endmodule
