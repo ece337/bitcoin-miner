@@ -58,8 +58,8 @@ void sha256_transform(SHA256_CTX *ctx, uchar data[])
       m[i] = SIG1(m[i-2]) + m[i-7] + SIG0(m[i-15]) + m[i-16];
    
    // Print m (w in Verilog)
-   printf("m words\n");
-   print_arr_int(m, 64, "m[%0d] = %08x\n");
+   //printf("m words\n");
+   //print_arr_int(m, 64, "m[%0d] = %08x\n");
 
    a = ctx->state[0];
    b = ctx->state[1];
@@ -130,8 +130,8 @@ void sha256_final(SHA256_CTX *ctx, uchar hash[])
    i = ctx->datalen;
    
    // Data before preprocessing
-   printf("Data before preprocessing:\n");
-   print_arr_char(ctx->data, 64, "%02x");
+   //printf("Data before preprocessing:\n");
+   //print_arr_char(ctx->data, 64, "%02x");
    
    // Pad whatever data is left in the buffer. 
    if (ctx->datalen < 56) { 
@@ -159,8 +159,8 @@ void sha256_final(SHA256_CTX *ctx, uchar hash[])
    ctx->data[56] = ctx->bitlen[1] >> 24;
    
    // Data after preprocessing
-   printf("Data after preprocessing:\n");
-   print_arr_char(ctx->data, 64, "%02x");
+   //printf("Data after preprocessing:\n");
+   //print_arr_char(ctx->data, 64, "%02x");
    
    sha256_transform(ctx,ctx->data);
    
