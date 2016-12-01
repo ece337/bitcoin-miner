@@ -114,7 +114,7 @@ extensionSHA EXTSHA (
 	.w(w_extSHA)
 );
 
-counter #(16, 63) EXTCOUNT (
+counter #(7, 16, 63) EXTCOUNT (
 	.clk(clk),
 	.n_rst(n_rst),
 	.enable(extEnable),
@@ -149,7 +149,7 @@ compressionSHA COMPRSHA (
 	.h(hOut)
 );
 
-counter #(0, 63) COMPRCOUNT (
+counter #(7, 0, 63) COMPRCOUNT (
 	.clk(clk),
 	.n_rst(n_rst),
 	.enable(comprEnable),

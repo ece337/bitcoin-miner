@@ -1,5 +1,6 @@
 module counter
 #(
+	parameter NUM_BITS = 7,
 	parameter RESTART_VAL = 0,
 	parameter MAX_VAL = 64
 )
@@ -9,10 +10,10 @@ module counter
 	input wire enable,
 	input wire restart,
 	output wire complete,
-	output reg [6:0] currentCount
+	output reg [NUM_BITS-1:0] currentCount
 );
 
-reg [6:0] nextCount;
+reg [NUM_BITS-1:0] nextCount;
 
 assign complete = currentCount == MAX_VAL;
 

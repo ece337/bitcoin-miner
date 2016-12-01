@@ -10,6 +10,7 @@ module controller
 	output wire loadTarget,
 	output wire loadMsg,
 	output wire reset,
+	output wire beginSHA,
 	output wire increment,
 	output wire error
 );
@@ -36,6 +37,7 @@ end
 assign loadTarget = state == NEWTARGET;
 assign loadMsg = state == NEWMSG;
 assign reset = state == NEWMSG;
+assign beginSHA = state == SHABEGIN;
 assign increment = state == BTCINVALID;
 assign error = state == EIDLE;
 
