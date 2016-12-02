@@ -4,7 +4,7 @@ module SHAcomputationalBlock
 	input wire n_rst,
 	input reg [439:0] inputMsg,
 	input wire beginComputation,
-	output wire computationComplete,
+	output reg computationComplete,
 	output reg [255:0] SHAoutput
 );
 
@@ -15,7 +15,6 @@ reg [6:0] extCount, comprCount;
 reg [31:0] aOut, bOut, cOut, dOut, eOut, fOut, gOut, hOut,
 h0, h1, h2, h3, h4, h5, h6, h7;
 
-assign computationComplete = comprComplete;
 assign SHAoutput = {h0,h1,h2,h3,h4,h5,h6,h7};
 
 initial begin
@@ -167,6 +166,15 @@ always_comb begin
 	h5 = 32'h9b05688c + fOut;
 	h6 = 32'h1f83d9ab + gOut;
 	h7 = 32'h5be0cd19 + hOut;
+end
+
+wire next_computationComplete;
+
+always_ff @ (posedge clk, negedge n_rst) begin
+	if (!n_rst)
+		computationComplete = 1'b0;
+	else
+		computationComplete = comprComplete;
 end
 
 endmodule

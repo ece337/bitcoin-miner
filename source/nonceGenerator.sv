@@ -1,4 +1,7 @@
-module nonce_generator
+module nonceGenerator
+#(
+	parameter START_VAL = 0
+)
 (
 	input wire clk,
 	input wire n_rst,
@@ -14,7 +17,7 @@ assign overflow = (nonce == '1);
 
 always_ff @ (posedge clk, negedge n_rst) begin
 	if(!n_rst)
-		nonce <= 0;
+		nonce <= START_VAL;
 	else
 		nonce <= nextNonce;
 end
@@ -22,7 +25,7 @@ end
 always_comb begin
 	nextNonce = nonce;
 	if (restart)
-		nextNonce = '0;
+		nextNonce = START_VAL;
 	else if (enable)
 		nextNonce = nonce + 1;
 end

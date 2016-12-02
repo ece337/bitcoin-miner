@@ -1,20 +1,41 @@
 module topLevelMiner
 (
 	input logic clk,
-	input logic n_rst	
+	input logic n_rst,
+	input logic newTarget,
+	input logic newMsg,
+	input logic [255:0] inputTarget,
+	input logic [407:0] inputMsg,
+	output logic [255:0] targetOutput,
+	output logic [255:0] SHAoutput,
+	output logic validBTC
 );
 
 wire validFromComparator, overflowFromNonceGen, ltFromController,
 lmFromController, resetFromController, incFromController, errFromController,
 beginComputationFromController, newTargetFromED, newMsgFromED, computationCompleteFromSHA;
 
-wire [23:0][31:0] messageFromRegisters;
+logic [31:0] nonce;
+
+wire [407:0] messageFromRegisters;
+wire [439:0] messageWithNonce;
 
 logic [23:0][31:0] registersFromSlave;
 wire [255:0] SHAoutfromSHABlock;
 logic [255:0] finishedSHA; 
 
-assign messageFromRegisters = {registersFromSlave[15:3], registersFromSlave[2][31:8]};
+assign registersFromSlave[0][1] = newMsg;
+assign registersFromSlave[0][0] = newTarget;
+assign registersFromSlave[15:4] = inputMsg[407:24];
+assign registersFromSlave[3][31:8] = inputMsg[23:0];
+assign registersFromSlave[23:16] = inputTarget;
+
+assign messageFromRegisters = {registersFromSlave[15:4], registersFromSlave[3][31:8]};
+assign messageWithNonce = {messageFromRegisters, nonce};
+
+assign targetOutput = registersFromSlave[23:16];
+assign SHAoutput = finishedSHA;
+assign validBTC = validFromComparator;
 
 /*custom_slave #(
 	MASTER_ADDRESSWIDTH = 26 ,  	// ADDRESSWIDTH specifies how many addresses the Master can address 
@@ -46,24 +67,7 @@ assign messageFromRegisters = {registersFromSlave[15:3], registersFromSlave[2][3
 
 );*/
 
-SHAcomputationalBlock SHABlock
-(
-	.clk(clk),
-	.n_rst(n_rst),
-	.inputMsg(messageFromRegisters),
-	.beginComputation(beginComputationFromController),
-	.computationComplete(computationCompleteFromSHA),
-	.SHAoutput(SHAoutfromSHABlock)
-);
-
-comparator compare
-(
-	.target(registersFromSlave[23:16]),
-	.msg(finishedSHA),
-	.valid(validFromComparator)
-);
-
-controller internalController
+controller INTCONTROLLER
 (
 	.clk(clk),
 	.n_rst(n_rst),
@@ -80,7 +84,7 @@ controller internalController
 	.error(errFromController)
 );
 
-risignEdgeDetect newTarget
+risingEdgeDetect NEWTARGET
 (
 	.clk(clk),
 	.n_rst(n_rst),
@@ -88,12 +92,29 @@ risignEdgeDetect newTarget
 	.risingEdgeDetected(newTargetFromED)
 );
 
-risignEdgeDetect newMsg
+risingEdgeDetect NEWMSG
 (
 	.clk(clk),
 	.n_rst(n_rst),
 	.currentValue(registersFromSlave[0][1]),
 	.risingEdgeDetected(newMsgFromED)
+);
+
+SHAcomputationalBlock SHABLOCK
+(
+	.clk(clk),
+	.n_rst(n_rst),
+	.inputMsg(messageWithNonce),
+	.beginComputation(beginComputationFromController),
+	.computationComplete(computationCompleteFromSHA),
+	.SHAoutput(SHAoutfromSHABlock)
+);
+
+comparator COMPARE
+(
+	.target(registersFromSlave[23:16]),
+	.SHAoutput(finishedSHA),
+	.valid(validFromComparator)
 );
 
 always_ff @ (posedge clk, negedge n_rst)
@@ -106,5 +127,15 @@ begin
 		finishedSHA <= finishedSHA;
 	end
 end
+
+nonceGenerator #(0) NONCE
+(
+	.clk(clk),
+	.n_rst(n_rst),
+	.enable(incFromController),
+	.restart(newMsgFromED),
+	.overflow(overflowFromNonceGen),
+	.nonce(nonce)
+);
 
 endmodule
