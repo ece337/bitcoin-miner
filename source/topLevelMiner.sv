@@ -9,6 +9,12 @@ module topLevelMiner
 	output logic [255:0] targetOutput,
 	output logic [255:0] SHAoutput,
 	output logic validBTC
+	/*input logic [4:0] slaveAddr,
+	input logic [31:0] slaveWriteData,
+	input logic slaveWrite,
+	input logic slaveRead,
+	input logic slaveChipSelect,
+	output logic [31:0] slaveReadData*/
 );
 
 wire validFromComparator, overflowFromNonceGen, ltFromController,
@@ -38,8 +44,7 @@ assign SHAoutput = finishedSHA;
 assign validBTC = validFromComparator;
 
 /*custom_slave #(
-	MASTER_ADDRESSWIDTH = 26 ,  	// ADDRESSWIDTH specifies how many addresses the Master can address 
-	SLAVE_ADDRESSWIDTH = 3 ,  	// ADDRESSWIDTH specifies how many addresses the slave needs to be mapped to. log(NUMREGS)
+	SLAVE_ADDRESSWIDTH = 5 ,  	// ADDRESSWIDTH specifies how many addresses the slave needs to be mapped to. log(NUMREGS)
 	DATAWIDTH = 32 ,    		// DATAWIDTH specifies the data width. Default 32 bits
 	NUMREGS = 24 ,       		// Number of Internal Registers for Custom Logic
 	REGWIDTH = 32       		// Data Width for the Internal Registers. Default 32 bits
@@ -48,25 +53,21 @@ assign validBTC = validFromComparator;
 	.clk(clk),
         .reset_n(n_rst),
 	
-	// Interface to Top Level
-	.rdwr_cntl(,					// Control Read or Write to a slave module.
-	.n_action(,					// Trigger the Read or Write. Additional control to avoid continuous transactions. Not a required signal. Can and should be removed for actual application.
-	.add_data_sel(,				// Interfaced to switch. Selects either Data or Address to be displayed on the Seven Segment Displays.
-	.rdwr_address(,	// read_address if required to be sent from another block. Can be unused if consecutive reads are required.
-
 	// Bus Slave Interface
-        .slave_address(,
-        .slave_writedata(,
-        .slave_write(,
-        .slave_read(,
-        .slave_chipselect(,
+	.foundNonce(nonce),
+	.complete(computationCompleteFromSHA),
+	.found(validFromComparator),
+        .slave_address(slaveAddr),
+        .slave_writedata(slaveWriteData),
+        .slave_write(slaveWrite),
+        .slave_read(slaveRead),
+        .slave_chipselect(slaveChipSelect),
 //      input logic  slave_readdatavalid, 			// These signals are for variable latency reads. 
 //	output logic slave_waitrequest,   			// See the Avalon Specifications for details  on how to use them.
-        .slave_readdata(,
+        .slave_readdata(slaveReadData),
 	.csr_registers(registersFromSlave)
-
-);*/
-
+);
+*/
 controller INTCONTROLLER
 (
 	.clk(clk),
