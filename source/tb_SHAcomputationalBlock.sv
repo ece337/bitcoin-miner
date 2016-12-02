@@ -16,6 +16,7 @@ SHAcomputationalBlock SHA
 
 localparam CLK_PERIOD = 20ns;
 integer testcase = 0;
+integer length = 0;
 
 always begin
 	tb_clk = 1'b0;
@@ -51,6 +52,18 @@ begin
 end
 endtask
 
+task strlen;
+	input string msg;
+	output integer length;
+begin
+	integer q = 0;
+	while(msg[q] != '\0')
+	begin
+		q = q + 1;
+	end
+	length = q;
+end
+
 initial begin
 	tb_n_rst = 1'b1;
 	tb_inputMsg = '0;
@@ -70,6 +83,11 @@ initial begin
 	
 	// Test case 3 - check correct SHA output for input 'a'
 	sendMsg(440'd97,         256'hca978112ca1bbdcafac231b39a23dc4da786eff8147c4e72b9807785afee48bb);
+
+	reset; 
+	
+	length = 440 - strlen("hello");
+	sendMsg({length * 1'd0, "hello"}, 256'h2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824);
 end
 
 endmodule

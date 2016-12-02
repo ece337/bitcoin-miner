@@ -23,6 +23,9 @@ module custom_slave #(
 	input logic [MASTER_ADDRESSWIDTH-1:0] rdwr_address,	// read_address if required to be sent from another block. Can be unused if consecutive reads are required.
 
 	// Bus Slave Interface
+	input logic [REGWIDTH-1:0] foundNonce,
+	input logic complete,
+	input logic found,
         input logic [SLAVE_ADDRESSWIDTH-1:0] slave_address,
         input logic [DATAWIDTH-1:0] slave_writedata,
         input logic  slave_write,
@@ -31,7 +34,7 @@ module custom_slave #(
 //      input logic  slave_readdatavalid, 			// These signals are for variable latency reads. 
 //	output logic slave_waitrequest,   			// See the Avalon Specifications for details  on how to use them.
         output logic [DATAWIDTH-1:0] slave_readdata,
-	output logic [NUMREGS-1:0][REGWIDTH-1:0] csr_registers;  		// Command and Status Registers (CSR) for custom logic 
+	output logic [NUMREGS-1:0][REGWIDTH-1:0] csr_registers,  		// Command and Status Registers (CSR) for custom logic 
 
 	// Bus Master Interface
         output logic [MASTER_ADDRESSWIDTH-1:0] master_address,
@@ -67,6 +70,9 @@ always_ff @ ( posedge clk ) begin
   	end
   else 
   	begin
+	  csr_registers[1] <= foundNonce;
+	  csr_registers[0][2] <= complete;
+	  csr_registers[0][3] <= found;
   	  if(slave_write && slave_chipselect && (slave_address >= 0) && (slave_address < NUMREGS))
   	  	begin
   	  	   csr_registers[slave_address] <= slave_writedata;  // Write a value to a CSR register
