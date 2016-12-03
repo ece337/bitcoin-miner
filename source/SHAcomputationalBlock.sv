@@ -1,14 +1,17 @@
-module SHAcomputationalBlock
+module SHAcomputationalBlock #
+(
+	parameter TOTAL_SIZE = 640
+)
 (
 	input wire clk,
 	input wire n_rst,
-	input reg [1975:0] inputMsg,
+	input reg [TOTAL_SIZE - 1:0] inputMsg,
 	input wire beginComputation,
 	output reg computationComplete,
 	output reg [255:0] SHAoutput
 );
 
-reg [3:0][511:0] processedMsg;
+reg [1:0][511:0] processedMsg;
 reg [63:0][31:0] k, w_extSHA;
 wire preprocessDone, extComplete, comprComplete;
 reg [6:0] extCount, comprCount;
@@ -130,7 +133,7 @@ initial begin
 	k[63] = 32'hc67178f2;
 end
 
-preprocessor PRE (
+preprocessor #(TOTAL_SIZE) PRE (
 	.clk(clk),
 	.n_rst(n_rst),
 	.inputMsg(inputMsg),

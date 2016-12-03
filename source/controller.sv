@@ -12,6 +12,7 @@ module controller
 	output wire reset,
 	output wire beginSHA,
 	output wire increment,
+	output wire btcFound,
 	output wire error
 );
 
@@ -39,6 +40,7 @@ assign loadMsg = state == NEWMSG;
 assign reset = state == NEWMSG;
 assign beginSHA = state == SHABEGIN;
 assign increment = state == BTCINVALID;
+assign btcFound = state == BTCVALID;
 assign error = state == EIDLE;
 
 always_comb begin

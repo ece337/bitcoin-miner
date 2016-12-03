@@ -70,9 +70,9 @@ always_ff @ ( posedge clk ) begin
   	end
   else 
   	begin
-	  csr_registers[1] <= foundNonce;
-	  csr_registers[0][2] <= complete;
-	  csr_registers[0][3] <= found;
+	  csr_registers[10] <= foundNonce;
+	  csr_registers[0][0] <= complete;
+	  csr_registers[0][1] <= found;
   	  if(slave_write && slave_chipselect && (slave_address >= 0) && (slave_address < NUMREGS))
   	  	begin
   	  	   csr_registers[slave_address] <= slave_writedata;  // Write a value to a CSR register

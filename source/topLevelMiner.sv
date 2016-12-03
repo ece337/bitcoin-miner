@@ -10,37 +10,45 @@ module topLevelMiner
 	output logic [31:0] slaveReadData
 );
 
+localparam MESSAGE_SIZE = 608;
+localparam NONCE_SIZE = 32;
+localparam DATAWIDTH = 32;
+localparam TOTAL_SIZE = MESSAGE_SIZE + NONCE_SIZE;
+localparam NUMBER_OF_REGISTERS = 30;
+
 wire validFromComparator, overflowFromNonceGen, ltFromController,
 lmFromController, resetFromController, incFromController, errFromController,
-beginComputationFromController, newTargetFromED, newMsgFromED, computationCompleteFromSHA;
+beginComputationFromController, newTargetFromED, newMsgFromED, computationCompleteFromSHA,
+btcFoundFromController;
 
-logic [31:0] nonce;
+logic [NONCE_SIZE - 1:0] nonce;
 
-wire [1943:0] messageFromRegisters;
-wire [1975:0] messageWithNonce;
+wire [MESSAGE_SIZE - 1:0] messageFromRegisters;
+wire [TOTAL_SIZE - 1:0] messageWithNonce;
 
-logic [71:0][31:0] registersFromSlave;
+logic [NUMBER_OF_REGISTERS - 1:0][DATAWIDTH - 1:0] registersFromSlave;
 wire [255:0] SHAoutfromSHABlock;
-logic [255:0] finishedSHA; 
+logic [255:0] finishedSHA;
+logic [33:0] resultsReg;
 
-assign messageFromRegisters = {registersFromSlave[63:4], registersFromSlave[3][31:8]};
+assign messageFromRegisters = registersFromSlave[29:11];
 assign messageWithNonce = {messageFromRegisters, nonce};
 
 
 custom_slave #(
 	.SLAVE_ADDRESSWIDTH(5),  	// ADDRESSWIDTH specifies how many addresses the slave needs to be mapped to. log(NUMREGS)
-	.DATAWIDTH(32),    		// DATAWIDTH specifies the data width. Default 32 bits
-	.NUMREGS(24),       		// Number of Internal Registers for Custom Logic
-	.REGWIDTH(32)       		// Data Width for the Internal Registers. Default 32 bits
+	.DATAWIDTH(DATAWIDTH),    		// DATAWIDTH specifies the data width. Default 32 bits
+	.NUMREGS(NUMBER_OF_REGISTERS),       		// Number of Internal Registers for Custom Logic
+	.REGWIDTH(DATAWIDTH)       		// Data Width for the Internal Registers. Default 32 bits
 ) avalonSlave
 (	
 	.clk(clk),
         .reset_n(n_rst),
 	
 	// Bus Slave Interface
-	.foundNonce(nonce),
-	.complete(computationCompleteFromSHA),
-	.found(validFromComparator),
+	.foundNonce(resultsReg[31:0]),
+	.complete(resultsReg[33]),
+	.found(resultsReg[32]),
         .slave_address(slaveAddr),
         .slave_writedata(slaveWriteData),
         .slave_write(slaveWrite),
@@ -66,6 +74,7 @@ controller INTCONTROLLER
 	.reset(resetFromController),
 	.beginSHA(beginComputationFromController),
 	.increment(incFromController),
+	.btcFound(btcFoundFromController),
 	.error(errFromController)
 );
 
@@ -73,7 +82,7 @@ risingEdgeDetect NEWTARGET
 (
 	.clk(clk),
 	.n_rst(n_rst),
-	.currentValue(registersFromSlave[0][0]),
+	.currentValue(registersFromSlave[1][0]),
 	.risingEdgeDetected(newTargetFromED)
 );
 
@@ -81,11 +90,11 @@ risingEdgeDetect NEWMSG
 (
 	.clk(clk),
 	.n_rst(n_rst),
-	.currentValue(registersFromSlave[0][1]),
+	.currentValue(registersFromSlave[1][1]),
 	.risingEdgeDetected(newMsgFromED)
 );
 
-SHAcomputationalBlock SHABLOCK
+SHAcomputationalBlock #(TOTAL_SIZE) SHABLOCK 
 (
 	.clk(clk),
 	.n_rst(n_rst),
@@ -97,7 +106,7 @@ SHAcomputationalBlock SHABLOCK
 
 comparator COMPARE
 (
-	.target(registersFromSlave[71:64]),
+	.target(registersFromSlave[9:2]),
 	.SHAoutput(finishedSHA),
 	.valid(validFromComparator)
 );
@@ -110,6 +119,20 @@ begin
 		finishedSHA <= SHAoutfromSHABlock;
 	end else begin
 		finishedSHA <= finishedSHA;
+	end
+end
+
+always_ff @ (posedge clk, negedge n_rst)
+begin
+	if(!n_rst) begin
+		resultsReg <= '0;
+	end else if(btcFoundFromController) begin
+		resultsReg[31:0] <= nonce;
+		resultsReg[32] <= 1'b1;
+		resultsReg[33] <= 1'b1;
+	end else if(errFromController) begin
+		resultsReg[33] <= 1'b1;
+		resultsReg[32] <= 1'b0;
 	end
 end
 
