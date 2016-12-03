@@ -22,17 +22,7 @@ char * usage = "For dummy mode, pass the flag -d.\n";
 int main(argc, char ** argv)
 {
 	initializePCIe();
-
-	DWORD * data = malloc(sizeof(DWORD)*BITCOIN_WORDS);
-
-	if(argc == 1){
-		operation_loop();
-	}else if(strcmp(argv[1], "-d") == 0){
-		dummy_loop();
-	}else{
-		printf(usage);
-		exit(1);
-	}
+	operation_loop();
 	return 0;
 }
 
@@ -49,12 +39,6 @@ void initializePCIe(){
 	if (!hPCIe){
 		printf("PCIE_Open failed\n");
 		exit(1);
-	}
-}
-
-void ucharsToDWORD(uchar* hash, DWORD * converted){
-	for(int i = 0; i < 8; i++){
-		converted[i] = *((DWORD *)(hash + (i * 4)));
 	}
 }
 
@@ -120,12 +104,8 @@ void operation_loop(){
             writeBitcoinMessage(bitcoinMessage);
             resumeMining();
         }else{
-            printf("miner is unexpectedly paused or has fallen into an unknown state.\n");
+            printf("The miner has fallen into an unknown state.\n");
             exit(1);
         }
     }
-}
-
-void dummy_loop(){
-    printf("DUMMY LOOP NOT YET IMPLEMENTED");
 }

@@ -1,4 +1,5 @@
 #include "bitcoin.h"
+#include <time.h>
 
 inline float fast_log(float val)
 {
@@ -19,7 +20,25 @@ float difficulty(unsigned int bits){
 }
 
 void constructBitcoinMessage(DWORD * store){
+    store[0] = VERSION;
+    DWORD dummy[8];
+    uchar temp[32];
+    sha("",temp,0);
+    ucharsToDWORD(temp, dummy);
+    for(int i = 0; i < 8; i++){
+        store[1+i] = dummy[i];
+    }
+    for(int i = 0; i < 8; i++){
+        store[9+i] = dummy[i];
+    }
+    store[17] = (DWORD)time(NULL);
+    store[18] = DIFFICULTY;
+}
 
+void ucharsToDWORD(uchar* hash, DWORD * converted){
+	for(int i = 0; i < 8; i++){
+		converted[i] = *((DWORD *)(hash + (i * 4)));
+	}
 }
 
 void floatToDWORDstring(float number, DWORD * result){
@@ -30,5 +49,5 @@ void floatToDWORDstring(float number, DWORD * result){
 }
 
 void calculateDifficulty(DWORD * store){
-
+    floatToDWORDstring(difficulty(DIFFICULTY),store);
 }
