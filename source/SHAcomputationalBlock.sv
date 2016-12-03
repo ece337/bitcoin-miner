@@ -2,18 +2,64 @@ module SHAcomputationalBlock
 (
 	input wire clk,
 	input wire n_rst,
-	input reg [439:0] inputMsg,
+	input reg [1975:0] inputMsg,
 	input wire beginComputation,
 	output reg computationComplete,
 	output reg [255:0] SHAoutput
 );
 
-reg [511:0] inputSHAMsg;
+reg [3:0][511:0] processedMsg;
 reg [63:0][31:0] k, w_extSHA;
 wire preprocessDone, extComplete, comprComplete;
 reg [6:0] extCount, comprCount;
 reg [31:0] aOut, bOut, cOut, dOut, eOut, fOut, gOut, hOut,
-h0, h1, h2, h3, h4, h5, h6, h7;
+h0, h1, h2, h3, h4, h5, h6, h7, nh0, nh1, nh2, nh3, nh4, nh5, nh6, nh7;
+logic beginExt, extEnable, comprEnable, chunkComplete, next_extEnable, next_comprEnable, next_computationComplete;
+reg [1:0] position, next_pos, startPos;
+
+always_ff @ (posedge clk, negedge n_rst) begin
+	if (!n_rst) begin
+		beginExt <= 1'b0;
+		extEnable <= 1'b0;
+		comprEnable = 1'b0;
+		position <= '0;
+		chunkComplete <= 1'b0;
+		computationComplete <= 1'b0;
+	end else begin
+		beginExt <= preprocessDone  || (chunkComplete && position != 0);
+		extEnable <= next_extEnable;
+		comprEnable <= next_comprEnable;
+		position <= next_pos;
+		chunkComplete <= comprComplete;
+		computationComplete <= next_computationComplete;
+	end
+end
+
+always_comb begin
+	// Next extEnable
+	next_extEnable = extEnable;
+	if (beginExt)
+		next_extEnable = 1'b1;
+	else if (extComplete)
+		next_extEnable = 1'b0;
+	
+	// Next comprEnable
+	next_comprEnable = comprEnable;
+	if (extComplete)
+		next_comprEnable = 1'b1;
+	else if (comprComplete)
+		next_comprEnable = 1'b0;
+	
+	// Next position
+	next_pos = position;
+	if (preprocessDone)
+		next_pos = startPos;
+	else if (chunkComplete)
+		next_pos = position - 1;
+	
+	// Next computationComplete
+	next_computationComplete = chunkComplete && position == 0;
+end
 
 assign SHAoutput = {h0,h1,h2,h3,h4,h5,h6,h7};
 
@@ -89,27 +135,18 @@ preprocessor PRE (
 	.n_rst(n_rst),
 	.inputMsg(inputMsg),
 	.beginPreprocess(beginComputation),
-	.processedMsg(inputSHAMsg),
+	.processedMsg(processedMsg),
+	.position(startPos),
 	.done(preprocessDone)
 );
-
-reg extEnable;
-always_ff @ (posedge clk, negedge n_rst) begin
-	if (!n_rst)
-		extEnable = 1'b0;
-	else if (preprocessDone)
-		extEnable = 1'b1;
-	else if (extComplete)
-		extEnable = 1'b0;
-end
 
 extensionSHA EXTSHA (
 	.clk(clk),
 	.n_rst(n_rst),
 	.enable(extEnable),
-	.inputSHAMsg(inputSHAMsg),
+	.loadInitial(beginExt),
+	.chunk(processedMsg[position]),
 	.i(extCount),
-	.loadInitial(preprocessDone),
 	.w(w_extSHA)
 );
 
@@ -117,25 +154,17 @@ counter #(7, 16, 63) EXTCOUNT (
 	.clk(clk),
 	.n_rst(n_rst),
 	.enable(extEnable),
-	.restart(preprocessDone),
+	.restart(beginExt),
 	.complete(extComplete),
 	.currentCount(extCount)
 );
-
-reg comprEnable;
-always_ff @ (posedge clk, negedge n_rst) begin
-	if (!n_rst)
-		comprEnable = 1'b0;
-	else if (extComplete)
-		comprEnable = 1'b1;
-	else if (comprComplete)
-		comprEnable = 1'b0;
-end
 
 compressionSHA COMPRSHA (
 	.clk(clk),
 	.n_rst(n_rst),
 	.enable(comprEnable),
+	.loadHash(extComplete),
+	.hash(SHAoutput),
 	.w_i(w_extSHA[comprCount]),
 	.k_i(k[comprCount]),
 	.a(aOut),
@@ -157,24 +186,56 @@ counter #(7, 0, 63) COMPRCOUNT (
 	.currentCount(comprCount)
 );
 
-always_comb begin
-	h0 = 32'h6a09e667 + aOut;
-	h1 = 32'hbb67ae85 + bOut;
-	h2 = 32'h3c6ef372 + cOut;
-	h3 = 32'ha54ff53a + dOut;
-	h4 = 32'h510e527f + eOut;
-	h5 = 32'h9b05688c + fOut;
-	h6 = 32'h1f83d9ab + gOut;
-	h7 = 32'h5be0cd19 + hOut;
+always_ff @ (posedge clk, negedge n_rst) begin
+	if (!n_rst) begin
+		h0 <= 32'h6a09e667;
+		h1 <= 32'hbb67ae85;
+		h2 <= 32'h3c6ef372;
+		h3 <= 32'ha54ff53a;
+		h4 <= 32'h510e527f;
+		h5 <= 32'h9b05688c;
+		h6 <= 32'h1f83d9ab;
+		h7 <= 32'h5be0cd19;
+	end else begin
+		h0 <= nh0;
+		h1 <= nh1;
+		h2 <= nh2;
+		h3 <= nh3;
+		h4 <= nh4;
+		h5 <= nh5;
+		h6 <= nh6;
+		h7 <= nh7;
+	end
 end
 
-wire next_computationComplete;
-
-always_ff @ (posedge clk, negedge n_rst) begin
-	if (!n_rst)
-		computationComplete = 1'b0;
-	else
-		computationComplete = comprComplete;
+always_comb begin
+	nh0 = h0;
+	nh1 = h1;
+	nh2 = h2;
+	nh3 = h3;
+	nh4 = h4;
+	nh5 = h5;
+	nh6 = h6;
+	nh7 = h7;
+	if (beginComputation) begin
+		nh0 = 32'h6a09e667;
+		nh1 = 32'hbb67ae85;
+		nh2 = 32'h3c6ef372;
+		nh3 = 32'ha54ff53a;
+		nh4 = 32'h510e527f;
+		nh5 = 32'h9b05688c;
+		nh6 = 32'h1f83d9ab;
+		nh7 = 32'h5be0cd19;
+	end else if (chunkComplete) begin
+		nh0 = h0 + aOut;
+		nh1 = h1 + bOut;
+		nh2 = h2 + cOut;
+		nh3 = h3 + dOut;
+		nh4 = h4 + eOut;
+		nh5 = h5 + fOut;
+		nh6 = h6 + gOut;
+		nh7 = h7 + hOut;
+	end
 end
 
 endmodule

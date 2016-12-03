@@ -1,7 +1,7 @@
 module tb_topLevelMiner();
 
 reg tb_clk, tb_n_rst, tb_newTarget, tb_newMsg, tb_validBTC;
-reg [407:0] tb_inputMsg;
+reg [1943:0] tb_inputMsg;
 reg [255:0] tb_inputTarget, tb_targetOutput, tb_SHAoutput;
 
 topLevelMiner TLM (
@@ -51,14 +51,14 @@ end
 endtask
 
 task sendMsg;
-	input [407:0] msg;
+	input [1943:0] msg;
 	input [255:0] expectedOutput;
 begin
 	tb_inputMsg = msg;
 	tb_newMsg = 1'b1;
 	#(CLK_PERIOD);
 	tb_newMsg = 1'b0;
-	#(CLK_PERIOD*230);
+	#(CLK_PERIOD*500);
 	
 	testcase = testcase + 1;
 	assert (tb_SHAoutput == expectedOutput) $info("Test case %0d: SUCCESS - SHA output is correct!\n", testcase);
@@ -75,10 +75,16 @@ initial begin
 	
 	reset;
 	
-	loadTarget(256'h1000000010000000100000001000000010000000100000001000000010000000);
+	loadTarget(256'h1000000000000000000000000000000000000000000000000000000000000000);
 	
 	// Test case 1 - check correct SHA output for input ''
-	sendMsg(408'h0, 256'he3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855);
+	//sendMsg(1943'h0, 256'h61be55a8e2f6b4e172338bddf184d6dbee29c98853e0a0485ecee7f27b9af0b4);
+	
+	//reset;
+	
+	// Test case 2 - check correct SHA output for input ''
+	sendMsg(1943'h6161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161,
+                 256'h11ee391211c6256460b6ed375957fadd8061cafbb31daf967db875aebd5aaad4);
 end
 
 endmodule

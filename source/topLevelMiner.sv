@@ -5,7 +5,7 @@ module topLevelMiner
 	input logic newTarget,
 	input logic newMsg,
 	input logic [255:0] inputTarget,
-	input logic [407:0] inputMsg,
+	input logic [1943:0] inputMsg,
 	output logic [255:0] targetOutput,
 	output logic [255:0] SHAoutput,
 	output logic validBTC
@@ -23,23 +23,23 @@ beginComputationFromController, newTargetFromED, newMsgFromED, computationComple
 
 logic [31:0] nonce;
 
-wire [407:0] messageFromRegisters;
-wire [439:0] messageWithNonce;
+wire [1943:0] messageFromRegisters;
+wire [1975:0] messageWithNonce;
 
-logic [23:0][31:0] registersFromSlave;
+logic [71:0][31:0] registersFromSlave;
 wire [255:0] SHAoutfromSHABlock;
 logic [255:0] finishedSHA; 
 
 assign registersFromSlave[0][1] = newMsg;
 assign registersFromSlave[0][0] = newTarget;
-assign registersFromSlave[15:4] = inputMsg[407:24];
+assign registersFromSlave[63:4] = inputMsg[1943:24];
 assign registersFromSlave[3][31:8] = inputMsg[23:0];
-assign registersFromSlave[23:16] = inputTarget;
+assign registersFromSlave[71:64] = inputTarget;
 
-assign messageFromRegisters = {registersFromSlave[15:4], registersFromSlave[3][31:8]};
+assign messageFromRegisters = {registersFromSlave[63:4], registersFromSlave[3][31:8]};
 assign messageWithNonce = {messageFromRegisters, nonce};
 
-assign targetOutput = registersFromSlave[23:16];
+assign targetOutput = registersFromSlave[71:64];
 assign SHAoutput = finishedSHA;
 assign validBTC = validFromComparator;
 
@@ -113,7 +113,7 @@ SHAcomputationalBlock SHABLOCK
 
 comparator COMPARE
 (
-	.target(registersFromSlave[23:16]),
+	.target(registersFromSlave[71:64]),
 	.SHAoutput(finishedSHA),
 	.valid(validFromComparator)
 );
@@ -129,7 +129,7 @@ begin
 	end
 end
 
-nonceGenerator #(0) NONCE
+nonceGenerator #(1633771873) NONCE
 (
 	.clk(clk),
 	.n_rst(n_rst),

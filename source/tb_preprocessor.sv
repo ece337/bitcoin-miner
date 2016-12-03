@@ -1,8 +1,9 @@
 module tb_preprocessor ();
 
 reg tb_clk, tb_n_rst, tb_beginPreprocess, tb_done;
-reg [439:0] tb_inputMsg;
-reg [511:0] tb_processedMsg;
+reg [1:0] tb_position;
+reg [1975:0] tb_inputMsg;
+reg [3:0][511:0] tb_processedMsg;
 
 preprocessor PRE
 (
@@ -11,6 +12,7 @@ preprocessor PRE
 	.inputMsg(tb_inputMsg),
 	.beginPreprocess(tb_beginPreprocess),
 	.processedMsg(tb_processedMsg),
+	.position(tb_position),
 	.done(tb_done)
 );
 
@@ -34,14 +36,14 @@ end
 endtask
 
 task preprocessMsg;
-	input [439:0] msg;
-	input [511:0] expectedOutput;
+	input [1975:0] msg;
+	input [3:0][511:0] expectedOutput;
 begin
 	tb_inputMsg = msg;
 	tb_beginPreprocess = 1'b1;
 	#(CLK_PERIOD);
 	tb_beginPreprocess = 1'b0;
-	#(CLK_PERIOD*100);
+	#(CLK_PERIOD*315);
 	
 	testcase = testcase + 1;
 	assert (tb_done == 1'b1)
@@ -58,8 +60,14 @@ initial begin
 	
 	reset;
 	
-	// Test case 1 - check correct SHA output
-	preprocessMsg(440'd97, 512'h61800000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000008);
+	// Test case 1 - check correct preprocessed output of size < 448
+	preprocessMsg(1976'd97, 512'h61800000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000008);
+	
+	reset;
+	
+	// Test case 2 - check correct preprocessed output of size > 448
+	preprocessMsg(1976'h80000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000,
+                      2048'h8000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000080000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000200);
 end
 
 endmodule
