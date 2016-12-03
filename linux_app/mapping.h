@@ -19,15 +19,17 @@ extern PCIE_HANDLE hPCIe;
 #define SET_PAUSE_BIT(x) (x |= 0x00000001)
 #define UNSET_PAUSE_BIT(x) (x &= 0xfffffffe)
 
-enum state_t{
+enum state_type{
     MINING,
     WAITING,
     SUCCESSFUL,
     UNKNOWN
-}
+};
+
+typedef enum state_type state_t;
 
 DWORD reverseBits(DWORD x);
-void writeValue(DWORD addr, value);
+void writeValue(DWORD addr, DWORD value);
 DWORD readValue(DWORD addr);
 void writeDifficultyMessage(DWORD * difficulty);
 void pauseMining();

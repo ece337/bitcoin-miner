@@ -2,6 +2,7 @@
 #define _BITCOIN
 
 #include "PCIE.h"
+#include "sha256.h"
 
 #define DIFFICULTY 0x1d00ffff
 #define VERSION 0x0400000

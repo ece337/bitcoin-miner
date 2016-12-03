@@ -1,4 +1,5 @@
 #include <stdio.h> 
+#include <stdlib.h>
 #include <string.h>
 #include "mapping.h"
 
@@ -10,7 +11,7 @@ DWORD reverseBits(DWORD x){
     return((x >> 16) | (x << 16));
 }
 
-void writeValue(DWORD addr, value){
+void writeValue(DWORD addr, DWORD value){
     BOOL bPass =  PCIE_Write32( hPCIe, PCIE_BAR0, addr, reverseBits(value));
     if (!bPass){
         printf("ERROR: PCIe Read Failed.\n");
@@ -29,8 +30,9 @@ DWORD readValue(DWORD addr){
 }
 
 void writeDifficultyMessage(DWORD * difficulty){
-	for(int i = 0; i < TARGET_WORD; i++){       
-		writeValue(TARGET_ADDR + i, data[TARGET_WORD - i - 1]);
+	int i;
+	for(i = 0; i < TARGET_WORDS; i++){       
+		writeValue(TARGET_ADDRESS + i, difficulty[TARGET_WORDS - i - 1]);
 	}
 }
 
@@ -71,13 +73,15 @@ DWORD readFromStatusRegister(){
 }
 
 void writeBitcoinMessage(DWORD * data){
-    for(int i = 0; i < BITCOIN_WORDS; i++){
+	int i;
+    for(i = 0; i < BITCOIN_WORDS; i++){
         writeValue(BITCOIN_ADDRESS + i, data[i]);
     }
 }
 
 void readBitcoin(DWORD * data){
-    for(int i = 0; i < BITCOIN_WORDS; i++){
+	int i;
+    for(i = 0; i < BITCOIN_WORDS; i++){
         data[BITCOIN_WORDS - i - 1] = readValue(BITCOIN_ADDRESS + i);
     }
     data[BITCOIN_WORDS] = readValue(NONCE_ADDRESS);

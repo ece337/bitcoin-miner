@@ -1,9 +1,11 @@
+#include <stdlib.h>
 #include "bitcoin.h"
+#include <math.h>
 #include <time.h>
 
 inline float fast_log(float val)
 {
-    int * const exp_ptr = reinterpret_cast <int *>(&val);
+    int * const exp_ptr = (int *)(&val);
     int x = *exp_ptr;
     const int log_2 = ((x >> 23) & 255) - 128;
     x &= ~(255 << 23);
@@ -15,7 +17,8 @@ inline float fast_log(float val)
 } 
  
 float difficulty(unsigned int bits){
-    static double max_body = fast_log(0x00ffff), scaland = fast_log(256);
+    double max_body = fast_log(0x00ffff);
+    double scaland = fast_log(256);
     return exp(max_body - fast_log(bits & 0x00ffffff) + scaland * (0x1d - ((bits & 0xff000000) >> 24)));
 }
 
@@ -23,12 +26,13 @@ void constructBitcoinMessage(DWORD * store){
     store[0] = VERSION;
     DWORD dummy[8];
     uchar temp[32];
-    sha("",temp,0);
+    sha((uchar*)"",temp,0);
     ucharsToDWORD(temp, dummy);
-    for(int i = 0; i < 8; i++){
+    int i;
+    for(i = 0; i < 8; i++){
         store[1+i] = dummy[i];
     }
-    for(int i = 0; i < 8; i++){
+    for(i = 0; i < 8; i++){
         store[9+i] = dummy[i];
     }
     store[17] = (DWORD)time(NULL);
@@ -36,13 +40,15 @@ void constructBitcoinMessage(DWORD * store){
 }
 
 void ucharsToDWORD(uchar* hash, DWORD * converted){
-	for(int i = 0; i < 8; i++){
+    int i;
+	for(i = 0; i < 8; i++){
 		converted[i] = *((DWORD *)(hash + (i * 4)));
 	}
 }
 
 void floatToDWORDstring(float number, DWORD * result){
-    for(int i = 0; i < 8; i++){
+    int i;
+    for(i = 0; i < 8; i++){
         float temp = number / exp2f((float)(32*(7-i)));
         result[i] = (DWORD)temp;
     }

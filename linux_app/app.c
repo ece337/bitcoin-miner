@@ -6,21 +6,15 @@
 
 #include "PCIE.h"
 #include "mapping.h"
-#include "sha256.c"
+#include "sha256.h"
 #include "bitcoin.h"
 
 void initializePCIe();
 void operation_loop();
-void dummy_loop();
-void constructBitcoinMessage(DWORD*);
-float difficulty(unsigned int bits)
 
 PCIE_HANDLE hPCIe;
 
-char * usage = "For dummy mode, pass the flag -d.\n";
-
-int main(argc, char ** argv)
-{
+int main(){
 	initializePCIe();
 	operation_loop();
 	return 0;
@@ -43,7 +37,8 @@ void initializePCIe(){
 }
 
 int compareHashes(DWORD * h1, DWORD * h2){
-    for(int i = 0; i < 8; i++){
+    int i;
+    for(i = 0; i < 8; i++){
         if(h1[i] > h2[i]){
             return 0;
         }
@@ -55,14 +50,15 @@ int compareHashes(DWORD * h1, DWORD * h2){
 }
 
 void printDWORDString(DWORD * output){
-    for(int i = 0; i < 8; i++){
+    int i;
+    for(i = 0; i < 8; i++){
         printf("%04x", output[i]);
     }
 }
 
-void verifySHAoutput(char * output, DWORD * difficulty){
+void verifySHAoutput(DWORD * output, DWORD * difficulty){
 	uchar hash[32];
-	sha(output, hash, 20);
+	sha((char *)output, hash, 80);
     DWORD converted[8];
 	ucharsToDWORD(hash,converted);
 	if(compareHashes(converted, difficulty)){
@@ -88,16 +84,16 @@ void operation_loop(){
     writeBitcoinMessage(bitcoinMessage);
     resumeMining();
 
-    while(true){
-        printf("Mining...");
-        while((current_state = getState()) == MINING);
-        if(current_state == SUCCESSFUL){
+    while(1){
+        printf("Mining...\n");
+        while((currentState = getState()) == MINING);
+        if(currentState == SUCCESSFUL){
             printf("Prospective Bitcoin Found!\n");
             printf("verifying...\n");
             DWORD bitcoin[20];
             readBitcoin(bitcoin);
             verifySHAoutput(bitcoin,difficulty);
-        }else if(current_state == WAITING){
+        }else if(currentState == WAITING){
             printf("No Bitcoins found on current block.\n");
             pauseMining();
             constructBitcoinMessage(bitcoinMessage);
