@@ -10,8 +10,8 @@ LDFLAGS =  -g -Wall
 
 build: $(TARGET)
 
-app: app.o PCIE.o
-	$(CC) $(LDFLAGS) $^ -o $@ -ldl
+app: app.o PCIE.o mapping.o bitcoin.o sha256.o
+	$(CC) $(LDFLAGS) $^ -o $@ -ldl -lm
 
 %.o : %.c
 	$(CC) $(CFLAGS) -c $< -o $@
