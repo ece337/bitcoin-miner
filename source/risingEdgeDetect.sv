@@ -1,9 +1,9 @@
 module risingEdgeDetect
 (
-	input clk,
-	input n_rst,
+	input wire clk,
+	input wire n_rst,
 	input logic currentValue,
-	input logic risingEdgeDetected
+	output logic risingEdgeDetected
 );
 
 reg previousVal;

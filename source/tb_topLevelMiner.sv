@@ -1,8 +1,6 @@
 module tb_topLevelMiner();
 
-reg tb_clk, tb_n_rst, tb_newTarget, tb_newMsg, tb_validBTC, tb_slaveWrite, tb_slaveRead, tb_slaveChipSelect;
-reg [1943:0] tb_inputMsg;
-reg [255:0] tb_inputTarget, tb_targetOutput, tb_SHAoutput;
+reg tb_clk, tb_n_rst, tb_slaveWrite, tb_slaveRead, tb_slaveChipSelect;
 reg [4:0] tb_slaveAddr;
 reg [31:0] tb_slaveWriteData, tb_slaveReadData;
 
@@ -41,36 +39,34 @@ endtask
 task loadTarget;
 	input [255:0] target;
 begin
-	tb_inputTarget = target;
-
-	tb_slaveAddr = 23;
-	tb_slaveWriteData = target[255:224];
 	tb_slaveWrite = 1'b1;
 	tb_slaveChipSelect = 1'b1;
 
-	#(CLK_PERIOD);
 	tb_slaveAddr = 9;
-	tb_slaveWriteData = target[223:192];
+	tb_slaveWriteData = target[255:224];
 	#(CLK_PERIOD);
 	tb_slaveAddr = 8;
-	tb_slaveWriteData = target[191:160];
+	tb_slaveWriteData = target[223:192];
 	#(CLK_PERIOD);
 	tb_slaveAddr = 7;
-	tb_slaveWriteData = target[159:128];
+	tb_slaveWriteData = target[191:160];
 	#(CLK_PERIOD);
 	tb_slaveAddr = 6;
-	tb_slaveWriteData = target[127:96];
+	tb_slaveWriteData = target[159:128];
 	#(CLK_PERIOD);
 	tb_slaveAddr = 5;
-	tb_slaveWriteData = target[95:64];
+	tb_slaveWriteData = target[127:96];
 	#(CLK_PERIOD);
 	tb_slaveAddr = 4;
-	tb_slaveWriteData = target[63:32];
+	tb_slaveWriteData = target[95:64];
 	#(CLK_PERIOD);
 	tb_slaveAddr = 3;
-	tb_slaveWriteData = target[31:0];
+	tb_slaveWriteData = target[63:32];
 	#(CLK_PERIOD);
 	tb_slaveAddr = 2;
+	tb_slaveWriteData = target[31:0];
+	#(CLK_PERIOD);
+	tb_slaveAddr = 1;
 	tb_slaveWriteData = 32'h00000001;
 	#(CLK_PERIOD);
 	
@@ -78,26 +74,9 @@ begin
 end
 endtask
 
-task sendMsg;
-	input [1943:0] msg;
-	input [255:0] expectedOutput;
-begin
-	tb_inputMsg = msg;
-	tb_newMsg = 1'b1;
-	#(CLK_PERIOD);
-	tb_newMsg = 1'b0;
-	#(CLK_PERIOD*500);
-	
-	testcase = testcase + 1;
-	assert (tb_SHAoutput == expectedOutput) $info("Test case %0d: SUCCESS - SHA output is correct!\n", testcase);
-	else $error("Test case %0d: FAILURE - SHA output did not match expected output\n", testcase);
-end
-endtask
-
 task loadMessage;
 	input [607:0] msg;
 begin
-	tb_inputMsg = msg;
 	tb_slaveWrite = 1'b1;
 	tb_slaveChipSelect = 1'b1;
 	tb_slaveWriteData = msg[(607-((29 - 29) * 32)):(607-((29 - 29) * 32))-31];
@@ -188,23 +167,7 @@ initial begin
 	
 	reset;
 	
-	loadTarget(256'h1000000000000000000000000000000000000000000000000000000000000000);
-//	loadTarget(256'h0FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF);
-	
-	/*// Test case 1 - check correct SHA output for input ''
-	sendMsg(1943'h0, 256'h61be55a8e2f6b4e172338bddf184d6dbee29c98853e0a0485ecee7f27b9af0b4);
-	
-	reset;
-	
-	// Test case 2 - check correct SHA output for input ''
-	sendMsg(1943'h6161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161,
-                 256'h11ee391211c6256460b6ed375957fadd8061cafbb31daf967db875aebd5aaad4);
-
-	loadTarget(256'h0FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF);
-
-	#(CLK_PERIOD);
-
-	reset;*/
+	loadTarget(256'h0100000000000000000000000000000000000000000000000000000000000000);
 
 	strlen("a", length);
 	loadMessage("a");
@@ -213,13 +176,12 @@ initial begin
 	tb_slaveRead = 1'b1;
 	tb_slaveAddr = 0;
 	#(CLK_PERIOD);
-	while(tb_slaveReadData != 32'h00000003)
-	begin
+	while(tb_slaveReadData != 32'h3) begin
 		#(CLK_PERIOD);
 	end
 	tb_slaveAddr = 10;
 	#(CLK_PERIOD);
-	$info("nonce found is %d", tb_slaveReadData);
+	$info("nonce found is %0d", tb_slaveReadData);
 end
 
 endmodule
