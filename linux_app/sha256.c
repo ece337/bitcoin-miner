@@ -186,28 +186,9 @@ void print_hash(unsigned char hash[])
    printf("\n");
 }
 
-int main(int argc, char * argv[])
-{
-   uchar hash[32];
-   int idx;
-   SHA256_CTX ctx;
-   
-   int i = 1;
-   while (i < argc) {
+void sha(char * message, uchar* hash, int length){
+	SHA256_CTX ctx;
 	sha256_init(&ctx);
-	sha256_update(&ctx,argv[i],strlen(argv[i]));
+	sha256_update(&ctx,output,length);
 	sha256_final(&ctx,hash);
-	printf("argv[%d]: %s -> ", i, argv[i]);
-	print_hash(hash);
-   	i++;
-   }
-   if (i == 1) {
-	sha256_init(&ctx);
-	sha256_update(&ctx,"",0);
-	sha256_final(&ctx,hash);
-	printf("empty: %s -> ", "");
-	print_hash(hash);
-   }
-   
-   return 0;
 }
