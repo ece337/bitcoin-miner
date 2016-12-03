@@ -2,19 +2,12 @@ module topLevelMiner
 (
 	input logic clk,
 	input logic n_rst,
-	input logic newTarget,
-	input logic newMsg,
-	input logic [255:0] inputTarget,
-	input logic [1943:0] inputMsg,
-	output logic [255:0] targetOutput,
-	output logic [255:0] SHAoutput,
-	output logic validBTC
-	/*input logic [4:0] slaveAddr,
+	input logic [4:0] slaveAddr,
 	input logic [31:0] slaveWriteData,
 	input logic slaveWrite,
 	input logic slaveRead,
 	input logic slaveChipSelect,
-	output logic [31:0] slaveReadData*/
+	output logic [31:0] slaveReadData
 );
 
 wire validFromComparator, overflowFromNonceGen, ltFromController,
@@ -30,24 +23,15 @@ logic [71:0][31:0] registersFromSlave;
 wire [255:0] SHAoutfromSHABlock;
 logic [255:0] finishedSHA; 
 
-assign registersFromSlave[0][1] = newMsg;
-assign registersFromSlave[0][0] = newTarget;
-assign registersFromSlave[63:4] = inputMsg[1943:24];
-assign registersFromSlave[3][31:8] = inputMsg[23:0];
-assign registersFromSlave[71:64] = inputTarget;
-
 assign messageFromRegisters = {registersFromSlave[63:4], registersFromSlave[3][31:8]};
 assign messageWithNonce = {messageFromRegisters, nonce};
 
-assign targetOutput = registersFromSlave[71:64];
-assign SHAoutput = finishedSHA;
-assign validBTC = validFromComparator;
 
-/*custom_slave #(
-	SLAVE_ADDRESSWIDTH = 5 ,  	// ADDRESSWIDTH specifies how many addresses the slave needs to be mapped to. log(NUMREGS)
-	DATAWIDTH = 32 ,    		// DATAWIDTH specifies the data width. Default 32 bits
-	NUMREGS = 24 ,       		// Number of Internal Registers for Custom Logic
-	REGWIDTH = 32       		// Data Width for the Internal Registers. Default 32 bits
+custom_slave #(
+	.SLAVE_ADDRESSWIDTH(5),  	// ADDRESSWIDTH specifies how many addresses the slave needs to be mapped to. log(NUMREGS)
+	.DATAWIDTH(32),    		// DATAWIDTH specifies the data width. Default 32 bits
+	.NUMREGS(24),       		// Number of Internal Registers for Custom Logic
+	.REGWIDTH(32)       		// Data Width for the Internal Registers. Default 32 bits
 ) avalonSlave
 (	
 	.clk(clk),
@@ -67,7 +51,7 @@ assign validBTC = validFromComparator;
         .slave_readdata(slaveReadData),
 	.csr_registers(registersFromSlave)
 );
-*/
+
 controller INTCONTROLLER
 (
 	.clk(clk),
@@ -129,7 +113,7 @@ begin
 	end
 end
 
-nonceGenerator #(1633771873) NONCE
+nonceGenerator #(0) NONCE
 (
 	.clk(clk),
 	.n_rst(n_rst),
