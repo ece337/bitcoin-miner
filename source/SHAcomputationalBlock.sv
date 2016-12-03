@@ -48,7 +48,7 @@ always_comb begin
 	
 	// Next comprEnable
 	next_comprEnable = comprEnable;
-	if (extComplete)
+	if (beginExt)
 		next_comprEnable = 1'b1;
 	else if (comprComplete)
 		next_comprEnable = 1'b0;
@@ -166,7 +166,7 @@ compressionSHA COMPRSHA (
 	.clk(clk),
 	.n_rst(n_rst),
 	.enable(comprEnable),
-	.loadHash(extComplete),
+	.loadHash(beginExt),
 	.hash(SHAoutput),
 	.w_i(w_extSHA[comprCount]),
 	.k_i(k[comprCount]),
@@ -184,7 +184,7 @@ counter #(7, 0, 63) COMPRCOUNT (
 	.clk(clk),
 	.n_rst(n_rst),
 	.enable(comprEnable),
-	.restart(extComplete),
+	.restart(beginExt),
 	.complete(comprComplete),
 	.currentCount(comprCount)
 );
