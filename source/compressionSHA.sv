@@ -3,6 +3,8 @@ module compressionSHA
 	input wire clk,
 	input wire n_rst,
 	input wire enable,
+	input wire loadHash,
+	input wire [255:0] hash,
 	input wire [31:0] w_i,
 	input wire [31:0] k_i,
 	output reg [31:0] a,
@@ -28,14 +30,23 @@ assign ar22 = {a[21:0],a[31:22]};
 
 always_ff @ (posedge clk, negedge n_rst) begin
 	if(!n_rst) begin
-		a <= 32'h6a09e667;
-		b <= 32'hbb67ae85;
-		c <= 32'h3c6ef372;
-		d <= 32'ha54ff53a;
-		e <= 32'h510e527f;
-		f <= 32'h9b05688c;
-		g <= 32'h1f83d9ab;
-		h <= 32'h5be0cd19;
+		a <= '0;
+		b <= '0;
+		c <= '0;
+		d <= '0;
+		e <= '0;
+		f <= '0;
+		g <= '0;
+		h <= '0;
+	end else if (loadHash) begin
+		a <= hash[255:224];
+		b <= hash[223:192];
+		c <= hash[191:160];
+		d <= hash[159:128];
+		e <= hash[127:96];
+		f <= hash[95:64];
+		g <= hash[63:32];
+		h <= hash[31:0];
 	end else begin
 		a <= na;
 		b <= nb;

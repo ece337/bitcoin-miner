@@ -3,9 +3,9 @@ module extensionSHA
 	input wire clk,
 	input wire n_rst,
 	input wire enable,
-	input reg [511:0] inputSHAMsg,
-	input wire [6:0] i,
 	input wire loadInitial,
+	input reg [511:0] chunk,
+	input wire [6:0] i,
 	output reg [63:0][31:0] w
 );
 
@@ -19,22 +19,22 @@ always_ff @ (posedge clk, negedge n_rst) begin
 	if(!n_rst)
 		w = '0;
 	else if (loadInitial) begin
-		w[15] = inputSHAMsg[31:0];
-		w[14] = inputSHAMsg[63:32];
-		w[13] = inputSHAMsg[95:64];
-		w[12] = inputSHAMsg[127:96];
-		w[11] = inputSHAMsg[159:128];
-		w[10] = inputSHAMsg[191:160];
-		w[9]  = inputSHAMsg[223:192];
-		w[8]  = inputSHAMsg[255:224];
-		w[7]  = inputSHAMsg[287:256];
-		w[6]  = inputSHAMsg[319:288];
-		w[5]  = inputSHAMsg[351:320];
-		w[4]  = inputSHAMsg[383:352];
-		w[3]  = inputSHAMsg[415:384];
-		w[2]  = inputSHAMsg[447:416];
-		w[1]  = inputSHAMsg[479:448];
-		w[0]  = inputSHAMsg[511:480];
+		w[15] = chunk[31:0];
+		w[14] = chunk[63:32];
+		w[13] = chunk[95:64];
+		w[12] = chunk[127:96];
+		w[11] = chunk[159:128];
+		w[10] = chunk[191:160];
+		w[9]  = chunk[223:192];
+		w[8]  = chunk[255:224];
+		w[7]  = chunk[287:256];
+		w[6]  = chunk[319:288];
+		w[5]  = chunk[351:320];
+		w[4]  = chunk[383:352];
+		w[3]  = chunk[415:384];
+		w[2]  = chunk[447:416];
+		w[1]  = chunk[479:448];
+		w[0]  = chunk[511:480];
 	end else
 		w[i] = nextW[i];
 end
