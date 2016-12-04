@@ -94,7 +94,7 @@ risingEdgeDetect NEWMSG
 	.risingEdgeDetected(newMsgFromED)
 );
 
-SHAcomputationalBlock #(TOTAL_SIZE) SHABLOCK 
+shaComputationalBlock #(TOTAL_SIZE) SHABLOCK 
 (
 	.clk(clk),
 	.n_rst(n_rst),

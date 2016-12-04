@@ -17,6 +17,7 @@ topLevelMiner DUT
 );
 
 localparam CLK_PERIOD = 20ns;
+localparam CLK_DELAY = 1ns;
 integer testcase = 0;
 integer length;
 
@@ -167,7 +168,7 @@ initial begin
 	
 	reset;
 	
-	loadTarget(256'h0100000000000000000000000000000000000000000000000000000000000000);
+	loadTarget(256'h1000000000000000000000000000000000000000000000000000000000000000);
 
 	strlen("a", length);
 	loadMessage("a");

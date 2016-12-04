@@ -19,3 +19,5 @@ default.svf
 *.BAK
 covhtmlreport/
 #*#
+do_mapping.tcl
+mapped
