@@ -35,12 +35,13 @@ always_ff @ (posedge clk, negedge n_rst) begin
 		w[2]  = chunk[447:416];
 		w[1]  = chunk[479:448];
 		w[0]  = chunk[511:480];
+		w[63:16] = '0;
 	end else
-		w[i] = nextW[i];
+		w = nextW;
 end
 
 always_comb begin
-	nextW[i] = w[i];
+	nextW = w;
 	if (enable) begin
 		wr7  = {w[i - 15][6:0], w[i - 15][31:7]};
 		wr18 = {w[i - 15][17:0], w[i - 15][31:18]};
@@ -51,6 +52,16 @@ always_comb begin
 		s0 = wr7 ^ wr18 ^ wrs3;
 		s1 = wr17 ^ wr19 ^ wrs10;
 		nextW[i] = w[i - 16] + s0 + w[i - 7] + s1;
+	end else begin
+		wr7  = 0;
+		wr18 = 0;
+		wrs3 = 0;
+		wr17 = 0;
+		wr19 = 0;
+		wrs10= 0;
+		s0 = 0;
+		s1 = 0;
+		//nextW[i] = w[i - 16];
 	end
 end
 

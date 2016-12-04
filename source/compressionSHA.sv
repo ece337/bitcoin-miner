@@ -69,14 +69,14 @@ always_comb begin
 	ng = g;
 	nh = h;
 	
+	s1 = er6 ^ er11 ^ er25;
+	ch = (e & f) ^ ((~e) & g);
+	temp1 = h + s1 + ch + k_i + w_i;
+	s0 = ar2 ^ ar13 ^ ar22;
+	maj = (a & b) ^ (a & c) ^ (b & c);
+	temp2 = s0 + maj;
+	
 	if (enable) begin
-		s1 = er6 ^ er11 ^ er25;
-		ch = (e & f) ^ ((~e) & g);
-		temp1 = h + s1 + ch + k_i + w_i;
-		s0 = ar2 ^ ar13 ^ ar22;
-		maj = (a & b) ^ (a & c) ^ (b & c);
-		temp2 = s0 + maj;
-		
 		nh = g;
 		ng = f;
 		nf = e;
