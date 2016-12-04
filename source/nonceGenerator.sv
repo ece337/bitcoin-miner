@@ -1,6 +1,7 @@
 module nonceGenerator
 #(
-	parameter START_VAL = 0
+	parameter START_VAL = 0,
+	parameter SKIP = 3
 )
 (
 	input wire clk,
@@ -27,7 +28,7 @@ always_comb begin
 	if (restart)
 		nextNonce = START_VAL;
 	else if (enable)
-		nextNonce = nonce + 1;
+		nextNonce = nonce + SKIP;
 end
 
 endmodule

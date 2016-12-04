@@ -15,11 +15,15 @@ localparam NONCE_SIZE = 32;
 localparam DATAWIDTH = 32;
 localparam TOTAL_SIZE = MESSAGE_SIZE + NONCE_SIZE;
 localparam NUMBER_OF_REGISTERS = 30;
+localparam NUM_SHABLOCKS = 10;
+localparam LOG2_NUM_SHABLOCKS = 4;
 
 wire validFromComparator, overflowFromNonceGen, ltFromController,
 lmFromController, resetFromController, incFromController, errFromController,
-beginComputationFromController, newTargetFromED, newMsgFromED, computationCompleteFromSHA,
-btcFoundFromController;
+beginComputationFromController, newTargetFromED, newMsgFromED,
+btcFoundFromController, completeFromSHAoutputCounter;
+logic [NUM_SHABLOCKS - 1:0] beginSHA, computationCompleteFromSHA;
+logic [LOG2_NUM_SHABLOCKS - 1:0] countFromSHAoutputCounter;
 
 logic [NONCE_SIZE - 1:0] nonce;
 
@@ -27,8 +31,8 @@ wire [MESSAGE_SIZE - 1:0] messageFromRegisters;
 wire [TOTAL_SIZE - 1:0] messageWithNonce;
 
 logic [NUMBER_OF_REGISTERS - 1:0][DATAWIDTH - 1:0] registersFromSlave;
-wire [255:0] SHAoutfromSHABlock;
-logic [255:0] finishedSHA;
+wire [NUM_SHABLOCKS - 1:0][255:0] SHAoutfromSHABlock;
+logic [NUM_SHABLOCKS - 1:0][255:0] finishedSHA;
 logic [33:0] resultsReg;
 
 assign messageFromRegisters = registersFromSlave[29:11];
@@ -66,9 +70,10 @@ controller INTCONTROLLER
 	.n_rst(n_rst),
 	.newTarget(newTargetFromED),
 	.newMsg(newMsgFromED),
-	.complete(computationCompleteFromSHA),
+	.complete(computationCompleteFromSHA[0]),
 	.valid(validFromComparator),
 	.overflow(overflowFromNonceGen),
+	.finishedValidating(completeFromSHAoutputCounter),
 	.loadTarget(ltFromController),
 	.loadMsg(lmFromController),
 	.reset(resetFromController),
@@ -94,20 +99,34 @@ risingEdgeDetect NEWMSG
 	.risingEdgeDetected(newMsgFromED)
 );
 
-shaComputationalBlock #(TOTAL_SIZE) SHABLOCK 
-(
-	.clk(clk),
-	.n_rst(n_rst),
-	.inputMsg(messageWithNonce),
-	.beginComputation(beginComputationFromController),
-	.computationComplete(computationCompleteFromSHA),
-	.SHAoutput(SHAoutfromSHABlock)
-);
+always_ff @ (posedge clk, negedge n_rst) begin
+	if (!n_rst)
+		beginSHA = '0;
+	else if (beginComputationFromController)
+		beginSHA = {(NUM_SHABLOCKS - 1) * 1'b0, 1'b1};
+	else
+		beginSHA = beginSHA << 1;
+end
+
+genvar i;
+generate
+for (i = 0; i < NUM_SHABLOCKS; i++) begin
+	shaComputationalBlock #(TOTAL_SIZE) SHABLOCK_X 
+	(
+		.clk(clk),
+		.n_rst(n_rst),
+		.inputMsg({messageFromRegisters, nonce + i}),
+		.beginComputation(beginSHA[i]),
+		.computationComplete(computationCompleteFromSHA[i]),
+		.SHAoutput(SHAoutfromSHABlock[i])
+	);
+end
+endgenerate
 
 comparator COMPARE
 (
 	.target(registersFromSlave[9:2]),
-	.SHAoutput(finishedSHA),
+	.SHAoutput(finishedSHA[countFromSHAoutputCounter]),
 	.valid(validFromComparator)
 );
 
@@ -127,7 +146,7 @@ begin
 	if(!n_rst) begin
 		resultsReg <= '0;
 	end else if(btcFoundFromController) begin
-		resultsReg[31:0] <= nonce;
+		resultsReg[31:0] <= (nonce + countFromSHAoutputCounter - 1);
 		resultsReg[32] <= 1'b1;
 		resultsReg[33] <= 1'b1;
 	end else if(errFromController) begin
@@ -136,7 +155,7 @@ begin
 	end
 end
 
-nonceGenerator #(0) NONCE
+nonceGenerator #(0, NUM_SHABLOCKS) NONCE
 (
 	.clk(clk),
 	.n_rst(n_rst),
@@ -144,6 +163,33 @@ nonceGenerator #(0) NONCE
 	.restart(newMsgFromED),
 	.overflow(overflowFromNonceGen),
 	.nonce(nonce)
+);
+
+reg SHAoutputCounterEnable, next_SHAoutputCounterEnable;
+
+always_ff @ (posedge clk, negedge n_rst) begin
+	if (!n_rst)
+		SHAoutputCounterEnable = 1'b0;
+	else
+		SHAoutputCounterEnable = next_SHAoutputCounterEnable;
+end
+
+always_comb begin
+	next_SHAoutputCounterEnable = SHAoutputCounterEnable;
+	if (computationCompleteFromSHA[0])
+		next_SHAoutputCounterEnable = 1'b1;
+	else if (completeFromSHAoutputCounter)
+		next_SHAoutputCounterEnable = 1'b0;
+end
+
+counter #(LOG2_NUM_SHABLOCKS, 0, NUM_SHABLOCKS) SHAOUTPUTCOUNTER
+(
+	.clk(clk),
+	.n_rst(n_rst),
+	.enable(SHAoutputCounterEnable),
+	.restart(computationCompleteFromSHA[0]),
+	.complete(completeFromSHAoutputCounter),
+	.currentCount(countFromSHAoutputCounter)
 );
 
 endmodule

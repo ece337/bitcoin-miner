@@ -7,6 +7,7 @@ module controller
 	input wire complete,
 	input wire valid,
 	input wire overflow,
+	input wire finishedValidating,
 	output wire loadTarget,
 	output wire loadMsg,
 	output wire reset,
@@ -64,7 +65,9 @@ always_comb begin
 		next_state = complete ? SHACOMPLETE : SHAWAIT;
 	end
 	SHACOMPLETE: begin
-		next_state = valid ? BTCVALID : BTCINVALID;
+		next_state = finishedValidating ? BTCINVALID :
+                             valid              ? BTCVALID   :
+                                                  SHACOMPLETE;
 	end
 	BTCVALID: begin
 		next_state = IDLE;
