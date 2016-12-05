@@ -1,7 +1,9 @@
-module tb_SHAcomputationalBlock ();
+module tb_shaComputationalBlock ();
+
+localparam MSG_SIZE = 640;
 
 reg tb_clk, tb_n_rst, tb_beginComputation, tb_computationComplete;
-reg [439:0] tb_inputMsg;
+reg [MSG_SIZE - 1:0] tb_inputMsg;
 reg [255:0] tb_SHAoutput;
 
 SHAcomputationalBlock SHA
@@ -35,14 +37,14 @@ end
 endtask
 
 task sendMsg;
-	input [439:0] msg;
+	input [MSG_SIZE - 1:0] msg;
 	input [255:0] expectedOutput;
 begin
 	tb_inputMsg = msg;
 	tb_beginComputation = 1'b1;
 	#(CLK_PERIOD);
 	tb_beginComputation = 1'b0;
-	#(CLK_PERIOD*230);
+	#(CLK_PERIOD*500);
 	
 	testcase = testcase + 1;
 	assert (tb_computationComplete == 1'b1)
@@ -56,13 +58,13 @@ task strlen;
 	input string msg;
 	output integer length;
 begin
-	integer q = 0;
-	while(msg[q] != '\0')
+	length = 0;
+	while(msg[length] != 0)
 	begin
-		q = q + 1;
+		length = length + 1;
 	end
-	length = q;
 end
+endtask
 
 initial begin
 	tb_n_rst = 1'b1;
@@ -72,22 +74,21 @@ initial begin
 	reset;
 	
 	// Test case 1 - check correct SHA output for input ''
-	sendMsg(440'd0,          256'he3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855);
-	
-	reset;
+	sendMsg(0, 256'he3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855);
 	
 	// Test case 2 - check correct SHA output for input 'hello'
-	sendMsg(440'h68656c6c6f, 256'h2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824);
-	
-	reset;
+	sendMsg("hello", 256'h2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824);
 	
 	// Test case 3 - check correct SHA output for input 'a'
-	sendMsg(440'd97,         256'hca978112ca1bbdcafac231b39a23dc4da786eff8147c4e72b9807785afee48bb);
-
-	reset; 
+	sendMsg("a", 256'hca978112ca1bbdcafac231b39a23dc4da786eff8147c4e72b9807785afee48bb);
 	
-	length = 440 - strlen("hello");
-	sendMsg({length * 1'd0, "hello"}, 256'h2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824);
+	// Test case 4 - check correct SHA output for input 'ece337'
+	sendMsg("ece337", 256'h0d2a1646240edf5d53e1898faedf59e3578cdac873c0d7f05c6be8452cbff563);
+	
+	// Test case 5 - check correct SHA output for input with multiple chunks 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+	sendMsg("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", 256'h11ee391211c6256460b6ed375957fadd8061cafbb31daf967db875aebd5aaad4);
+	
+	
 end
 
 endmodule
