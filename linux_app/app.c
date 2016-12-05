@@ -49,9 +49,9 @@ int compareHashes(DWORD * h1, DWORD * h2){
     return 1;
 }
 
-void printDWORDString(DWORD * output){
+void printDWORDString(DWORD * output, int length){
     int i;
-    for(i = 0; i < 8; i++){
+    for(i = 0; i < length; i++){
         printf("%04x", output[i]);
     }
 }
@@ -67,9 +67,9 @@ void verifySHAoutput(DWORD * output, DWORD * difficulty){
         printf("Bitcoin is not valid!\n");
     }
     printf("Bitcoin:    ");
-    printDWORDString(converted);
+    printDWORDString(converted,8);
     printf("\nDifficulty: ");
-    printDWORDString(difficulty);
+    printDWORDString(difficulty,8);
     printf("\n\n");
 }
 
@@ -79,12 +79,16 @@ void operation_loop(){
     state_t currentState;
     calculateDifficulty(difficulty);
 
-    pauseMining();
-    constructBitcoinMessage(bitcoinMessage);
-    writeBitcoinMessage(bitcoinMessage);
-    resumeMining();
+    
 
     while(1){
+	pauseMining();
+    constructBitcoinMessage(bitcoinMessage);
+    writeBitcoinMessage(bitcoinMessage);
+	printf("Writing Bitcoin:  ");
+	printDWORDString(bitcoinMessage,19);
+	printf("\n");
+    resumeMining();
         printf("Mining...\n");
         while((currentState = getState()) == MINING);
         if(currentState == SUCCESSFUL){
@@ -95,10 +99,6 @@ void operation_loop(){
             verifySHAoutput(bitcoin,difficulty);
         }else if(currentState == WAITING){
             printf("No Bitcoins found on current block.\n");
-            pauseMining();
-            constructBitcoinMessage(bitcoinMessage);
-            writeBitcoinMessage(bitcoinMessage);
-            resumeMining();
         }else{
             printf("The miner has fallen into an unknown state.\n");
             exit(1);

@@ -50,16 +50,16 @@ void resumeMining(){
 state_t getState(){
 	DWORD state = readFromStatusRegister();
 	if(SUCCESS_BIT_SET(state)){
-		if(MINING_BIT_SET(state)){
-            return UNKNOWN;
-        }else{
+		if(STOPPED_BIT_SET(state)){
             return SUCCESSFUL;
+        }else{
+            return UNKNOWN;
         }
 	}else{
-        if(MINING_BIT_SET(state)){
-            return MINING;
-        }else{
+        if(STOPPED_BIT_SET(state)){
             return WAITING;
+        }else{
+            return MINING;
         }
 	}
 }
