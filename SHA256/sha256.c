@@ -58,8 +58,8 @@ void sha256_transform(SHA256_CTX *ctx, uchar data[])
       m[i] = SIG1(m[i-2]) + m[i-7] + SIG0(m[i-15]) + m[i-16];
    
    // Print m (w in Verilog)
-   printf("m words\n");
-   print_arr_int(m, 64, "%08x");
+   //printf("m words\n");
+   //print_arr_int(m, 64, "%08x");
 
    a = ctx->state[0];
    b = ctx->state[1];
@@ -70,7 +70,7 @@ void sha256_transform(SHA256_CTX *ctx, uchar data[])
    g = ctx->state[6];
    h = ctx->state[7];
    
-   printf("before = %08x%08x%08x%08x%08x%08x%08x%08x\n", a, b, c, d, e, f, g, h);
+   //printf("before = %08x%08x%08x%08x%08x%08x%08x%08x\n", a, b, c, d, e, f, g, h);
    
    for (i = 0; i < 64; ++i) {
       t1 = h + EP1(e) + CH(e,f,g) + k[i] + m[i];
@@ -94,8 +94,8 @@ void sha256_transform(SHA256_CTX *ctx, uchar data[])
    ctx->state[6] += g;
    ctx->state[7] += h;
    
-   printf("added = %08x%08x%08x%08x%08x%08x%08x%08x\n", a, b, c, d, e, f, g, h);
-   printf("state = %08x%08x%08x%08x%08x%08x%08x%08x\n", ctx->state[0], ctx->state[1], ctx->state[2], ctx->state[3], ctx->state[4], ctx->state[5], ctx->state[6], ctx->state[7]);
+   //printf("added = %08x%08x%08x%08x%08x%08x%08x%08x\n", a, b, c, d, e, f, g, h);
+   //printf("state = %08x%08x%08x%08x%08x%08x%08x%08x\n", ctx->state[0], ctx->state[1], ctx->state[2], ctx->state[3], ctx->state[4], ctx->state[5], ctx->state[6], ctx->state[7]);
 }  
 
 void sha256_init(SHA256_CTX *ctx)
