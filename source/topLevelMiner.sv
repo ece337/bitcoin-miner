@@ -145,7 +145,9 @@ end
 
 always_ff @ (posedge clk, negedge n_rst)
 begin
-	if(!n_rst || newMsgFromED) begin
+	if(!n_rst) begin
+		resultsReg <= '0;
+	end else if(newMsgFromED) begin
 		resultsReg <= '0;
 	end else if(btcFoundFromController) begin
 		resultsReg[31:0] <= (nonce + countFromSHAoutputCounter - 1);
