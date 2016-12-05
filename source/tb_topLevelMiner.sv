@@ -168,7 +168,7 @@ initial begin
 	
 	reset;
 	
-	loadTarget(256'h0100000000000000000000000000000000000000000000000000000000000000);
+	loadTarget(256'h1000000000000000000000000000000000000000000000000000000000000000);
 
 	strlen("a", length);
 	loadMessage("a");
@@ -183,6 +183,71 @@ initial begin
 	tb_slaveAddr = 10;
 	#(CLK_PERIOD);
 	$info("nonce found is %0d", tb_slaveReadData);
+	assert(tb_slaveReadData == 32'h2)
+	else $error("incorrect nonce found, expected 2", tb_slaveReadData);
+
+	reset;
+
+	loadTarget(256'h0100000000000000000000000000000000000000000000000000000000000000);
+
+	strlen("a", length);
+	loadMessage("a");
+
+	tb_slaveChipSelect = 1'b1;
+	tb_slaveRead = 1'b1;
+	tb_slaveAddr = 0;
+	#(CLK_PERIOD);
+	while(tb_slaveReadData != 32'h3) begin
+		#(CLK_PERIOD);
+	end
+	tb_slaveAddr = 10;
+	#(CLK_PERIOD);
+	$info("nonce found is %0d, (%x)", tb_slaveReadData, tb_slaveReadData);
+	assert(tb_slaveReadData == 32'h176)
+	else $error("incorrect nonce found, expected 374", tb_slaveReadData);
+
+	loadTarget(256'h1000000000000000000000000000000000000000000000000000000000000000);
+	#(CLK_PERIOD * 10);
+
+	tb_slaveAddr = 1;
+	tb_slaveWrite = 1'b1;
+	tb_slaveWriteData = 32'h00000002;
+	#(CLK_PERIOD);	
+	tb_slaveWrite = 1'b0;
+	#(CLK_PERIOD * 2);
+	
+	tb_slaveRead = 1'b1;
+	tb_slaveAddr = 0;
+	#(CLK_PERIOD);
+	while(tb_slaveReadData != 32'h3) begin
+		#(CLK_PERIOD);
+	end
+	tb_slaveAddr = 10;
+	#(CLK_PERIOD);
+	$info("nonce found is %0d, (%x)", tb_slaveReadData, tb_slaveReadData);
+	assert(tb_slaveReadData == 32'h2)
+	else $error("incorrect nonce found, expected 2", tb_slaveReadData);
+
+	reset;
+
+	loadTarget(256'h0001000000000000000000000000000000000000000000000000000000000000);
+
+	strlen("hello my name is inigo montoya", length);
+	loadMessage("hello my name is inigo montoya");
+
+	tb_slaveChipSelect = 1'b1;
+	tb_slaveRead = 1'b1;
+	tb_slaveAddr = 0;
+	#(CLK_PERIOD);
+	while(tb_slaveReadData != 32'h3) begin
+		#(CLK_PERIOD);
+	end
+	tb_slaveAddr = 10;
+	#(CLK_PERIOD);
+	$info("nonce found is %0d, (%x)", tb_slaveReadData, tb_slaveReadData);
+	assert(tb_slaveReadData == 32'h15346)
+	else $error("incorrect nonce found, expected 2", tb_slaveReadData);
+	
 end
 
 endmodule

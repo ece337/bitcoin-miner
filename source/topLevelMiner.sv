@@ -37,9 +37,9 @@ logic [33:0] resultsReg;
 
 assign messageFromRegisters = registersFromSlave[29:11];
 assign messageWithNonce = {messageFromRegisters, nonce};
+assign validFromComparator = finishedSHA[countFromSHAoutputCounter] < registersFromSlave[9:2];
 
-
-custom_slave #(
+my_slave #(
 	.SLAVE_ADDRESSWIDTH(5),  	// ADDRESSWIDTH specifies how many addresses the slave needs to be mapped to. log(NUMREGS)
 	.DATAWIDTH(DATAWIDTH),    		// DATAWIDTH specifies the data width. Default 32 bits
 	.NUMREGS(NUMBER_OF_REGISTERS),       		// Number of Internal Registers for Custom Logic
@@ -110,7 +110,7 @@ end
 
 genvar i;
 generate
-for (i = 0; i < NUM_SHABLOCKS; i++) begin
+for (i = 0; i < NUM_SHABLOCKS; i++) begin : generateBlock1
 	shaComputationalBlock #(TOTAL_SIZE) SHABLOCK_X 
 	(
 		.clk(clk),
@@ -123,12 +123,14 @@ for (i = 0; i < NUM_SHABLOCKS; i++) begin
 end
 endgenerate
 
-comparator COMPARE
+
+
+/*comparator COMPE
 (
 	.target(registersFromSlave[9:2]),
 	.SHAoutput(finishedSHA[countFromSHAoutputCounter]),
 	.valid(validFromComparator)
-);
+);*/
 
 always_ff @ (posedge clk, negedge n_rst)
 begin
@@ -143,7 +145,7 @@ end
 
 always_ff @ (posedge clk, negedge n_rst)
 begin
-	if(!n_rst) begin
+	if(!n_rst || newMsgFromED) begin
 		resultsReg <= '0;
 	end else if(btcFoundFromController) begin
 		resultsReg[31:0] <= (nonce + countFromSHAoutputCounter - 1);
