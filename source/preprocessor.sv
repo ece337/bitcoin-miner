@@ -20,7 +20,7 @@ parameter [2:0] IDLE = 0,
 
 reg [2:0] state, next_state;
 reg [MESSAGE_SIZE + 7:0] preCopy, next_preCopy;
-reg [1023:0] preprocess, next_preprocess;
+reg [959:0] preprocess, next_preprocess;
 reg [63:0] length, next_length, size, next_size;
 
 assign position = (size + 64) / 512 - 1;
