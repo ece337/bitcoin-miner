@@ -6,18 +6,19 @@
 
 extern PCIE_HANDLE hPCIe;
 
+#define FACTOR 1
 #define CRA 0x00000000		// This is the starting address of the Custom Slave module. This maps to the address space of the custom module in the Qsys subsystem.
 #define BITCOIN_WORDS 19
 #define TARGET_WORDS 8
-#define BITCOIN_ADDRESS (CRA + 11)
-#define TARGET_ADDRESS (CRA + 2)
-#define CONTROL_ADDRESS (CRA + 1)
+#define BITCOIN_ADDRESS (CRA + (11*FACTOR))
+#define TARGET_ADDRESS (CRA + (2*FACTOR))
+#define CONTROL_ADDRESS (CRA + (1*FACTOR))
 #define STATUS_ADDRESS (CRA)
-#define NONCE_ADDRESS (CRA + 10)
+#define NONCE_ADDRESS (CRA + (10*FACTOR))
 #define SUCCESS_BIT_SET(x) (x & 0x00000002)
 #define STOPPED_BIT_SET(x) (x & 0x00000001)
-#define UNSET_PAUSE_BIT(x) (x |= 0x00000002)
-#define SET_PAUSE_BIT(x) (x &= 0xfffffffd)
+#define UNSET_PAUSE_BIT(x) (x |= 0x00000003)
+#define SET_PAUSE_BIT(x) (x &= 0x00000000)
 
 enum state_type{
     MINING,
@@ -39,5 +40,6 @@ void writeToControlRegister(DWORD value);
 DWORD readFromStatusRegister();
 void writeBitcoinMessage(DWORD * data);
 void readBitcoin(DWORD * data);
+void readDifficulty(DWORD * data);
 
 #endif

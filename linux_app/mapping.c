@@ -12,7 +12,9 @@ DWORD reverseBits(DWORD x){
 }
 
 void writeValue(DWORD addr, DWORD value){
-    BOOL bPass =  PCIE_Write32( hPCIe, PCIE_BAR0, addr, reverseBits(value));
+    printf("Write to %08x, data: %08x\n", addr, value);
+    // BOOL bPass =  PCIE_Write32( hPCIe, PCIE_BAR0, addr, reverseBits(value));
+    BOOL bPass =  PCIE_Write32( hPCIe, PCIE_BAR0, addr, value);
     if (!bPass){
         printf("ERROR: PCIe Read Failed.\n");
         exit(1);
@@ -20,19 +22,20 @@ void writeValue(DWORD addr, DWORD value){
 }
 
 DWORD readValue(DWORD addr){
-    DWORD value;
+    DWORD value = 0x00000000;
     BOOL bPass =  PCIE_Read32( hPCIe, PCIE_BAR0, addr, &value);
     if (!bPass){
         printf("ERROR: PCIe Read Failed.\n");
         exit(1);
     }
-    return reverseBits(value);
+    printf("Read from %08x, data: %08x\n", addr, value);
+    return value;
 }
 
 void writeDifficultyMessage(DWORD * difficulty){
 	int i;
 	for(i = 0; i < TARGET_WORDS; i++){       
-		writeValue(TARGET_ADDRESS + i, difficulty[TARGET_WORDS - i - 1]);
+		writeValue(TARGET_ADDRESS + (i*FACTOR), difficulty[TARGET_WORDS - i - 1]);
 	}
 }
 
@@ -44,6 +47,7 @@ void pauseMining(){
 
 void resumeMining(){
     DWORD state = 0;
+    UNSET_PAUSE_BIT(state);
     writeValue(CONTROL_ADDRESS, state);
 }
 
@@ -75,14 +79,21 @@ DWORD readFromStatusRegister(){
 void writeBitcoinMessage(DWORD * data){
 	int i;
     for(i = 0; i < BITCOIN_WORDS; i++){
-        writeValue(BITCOIN_ADDRESS + i, data[i]);
+        writeValue(BITCOIN_ADDRESS + (i*FACTOR), data[BITCOIN_WORDS - i - 1]);
     }
 }
 
 void readBitcoin(DWORD * data){
 	int i;
     for(i = 0; i < BITCOIN_WORDS; i++){
-        data[BITCOIN_WORDS - i - 1] = readValue(BITCOIN_ADDRESS + i);
+        data[BITCOIN_WORDS - i - 1] = readValue(BITCOIN_ADDRESS + (i*FACTOR));
     }
     data[BITCOIN_WORDS] = readValue(NONCE_ADDRESS);
+}
+
+void readDifficulty(DWORD * data){
+    int i;
+    for(i = 0; i < TARGET_WORDS; i++){
+        data[TARGET_WORDS - i - 1] = readValue(TARGET_ADDRESS + (i*FACTOR));
+    }
 }

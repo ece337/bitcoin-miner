@@ -55,5 +55,7 @@ void floatToDWORDstring(float number, DWORD * result){
 }
 
 void calculateDifficulty(DWORD * store){
-    floatToDWORDstring(difficulty(DIFFICULTY),store);
+    //floatToDWORDstring(dcifficulty(DIFFICULTY),store);
+    store[0] = 0x000fffff;
+    store[7] = 0xffffffff;
 }

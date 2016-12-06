@@ -75,10 +75,12 @@ void verifySHAoutput(DWORD * output, DWORD * difficulty){
 }
 
 void operation_loop(){
-    DWORD difficulty[8];
-    DWORD bitcoinMessage[19];
+    DWORD * difficulty = (DWORD*)malloc(sizeof(DWORD)*8);;
+    DWORD * bitcoinMessage = (DWORD*)malloc(sizeof(DWORD)*19);
+    DWORD * bitcoin = (DWORD*)malloc(sizeof(DWORD)*20);
     state_t currentState;
     calculateDifficulty(difficulty);
+    writeDifficultyMessage(difficulty);
 
     
 
@@ -93,15 +95,22 @@ void operation_loop(){
         printf("Mining...\n");
         while((currentState = getState()) == MINING){
             sleep(2);
-            DWORD bitcoin[20];
-            printf("\n\n\n Status Update: ");
+            
             readBitcoin(bitcoin);
+            printf("\n\n Status Update: ");
             printDWORDString(bitcoin,20);
+            printf("\n\n");
+            readDifficulty(difficulty);
+            printf(" Difficulty:    ");
+            printDWORDString(difficulty,8);
+            
+            
+            
+            printf("\n");
         }
         if(currentState == SUCCESSFUL){
             printf("Prospective Bitcoin Found!\n");
             printf("verifying...\n");
-            DWORD bitcoin[20];
             readBitcoin(bitcoin);
             verifySHAoutput(bitcoin,difficulty);
         }else if(currentState == WAITING){
