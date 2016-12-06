@@ -3,7 +3,7 @@ module tb_nonceGenerator ();
 reg tb_clk, tb_n_rst, tb_enable, tb_restart, tb_overflow;
 reg [31:0] tb_nonce;
 
-nonce_generator DUT
+nonceGenerator #(0,1) DUT
 (
 	.clk(tb_clk),
 	.n_rst(tb_n_rst),
