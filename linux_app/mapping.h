@@ -14,8 +14,8 @@ extern PCIE_HANDLE hPCIe;
 #define CONTROL_ADDRESS (CRA + 1)
 #define STATUS_ADDRESS (CRA)
 #define NONCE_ADDRESS (CRA + 10)
-#define SUCCESS_BIT_SET(x) (x | 0x00000002)
-#define STOPPED_BIT_SET(x) (x | 0x00000001)
+#define SUCCESS_BIT_SET(x) (x & 0x00000002)
+#define STOPPED_BIT_SET(x) (x & 0x00000001)
 #define UNSET_PAUSE_BIT(x) (x |= 0x00000002)
 #define SET_PAUSE_BIT(x) (x &= 0xfffffffd)
 

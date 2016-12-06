@@ -3,6 +3,7 @@
 #include <string.h>
 #include <memory.h>
 #include <math.h>
+#include <unistd.h>
 
 #include "PCIE.h"
 #include "mapping.h"
@@ -52,7 +53,7 @@ int compareHashes(DWORD * h1, DWORD * h2){
 void printDWORDString(DWORD * output, int length){
     int i;
     for(i = 0; i < length; i++){
-        printf("%04x", output[i]);
+        printf("%08x", output[i]);
     }
 }
 
@@ -90,7 +91,13 @@ void operation_loop(){
 	printf("\n");
     resumeMining();
         printf("Mining...\n");
-        while((currentState = getState()) == MINING);
+        while((currentState = getState()) == MINING){
+            sleep(2);
+            DWORD bitcoin[20];
+            printf("\n\n\n Status Update: ");
+            readBitcoin(bitcoin);
+            printDWORDString(bitcoin,20);
+        }
         if(currentState == SUCCESSFUL){
             printf("Prospective Bitcoin Found!\n");
             printf("verifying...\n");
