@@ -43,6 +43,7 @@ void pauseMining(){
     DWORD state = 0;
     SET_PAUSE_BIT(state);
     writeValue(CONTROL_ADDRESS, state);
+    writeValue(STATUS_ADDRESS, 0x00000000);
 }
 
 void resumeMining(){
@@ -53,11 +54,12 @@ void resumeMining(){
 
 state_t getState(){
 	DWORD state = readFromStatusRegister();
+    printf("Read from Status Register, data: %08x\n", state);
 	if(SUCCESS_BIT_SET(state)){
 		if(STOPPED_BIT_SET(state)){
             return SUCCESSFUL;
         }else{
-            return UNKNOWN;
+            return SUCCESSFUL;
         }
 	}else{
         if(STOPPED_BIT_SET(state)){

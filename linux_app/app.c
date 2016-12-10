@@ -93,6 +93,7 @@ void operation_loop(){
 	printf("\n");
     resumeMining();
         printf("Mining...\n");
+        sleep(10);
         while((currentState = getState()) == MINING){
             sleep(2);
             

@@ -6,7 +6,7 @@
 
 extern PCIE_HANDLE hPCIe;
 
-#define FACTOR 1
+#define FACTOR 4
 #define CRA 0x00000000		// This is the starting address of the Custom Slave module. This maps to the address space of the custom module in the Qsys subsystem.
 #define BITCOIN_WORDS 19
 #define TARGET_WORDS 8
@@ -17,7 +17,7 @@ extern PCIE_HANDLE hPCIe;
 #define NONCE_ADDRESS (CRA + (10*FACTOR))
 #define SUCCESS_BIT_SET(x) (x & 0x00000002)
 #define STOPPED_BIT_SET(x) (x & 0x00000001)
-#define UNSET_PAUSE_BIT(x) (x |= 0x00000003)
+#define UNSET_PAUSE_BIT(x) (x |= 0xFFFFFFFF)
 #define SET_PAUSE_BIT(x) (x &= 0x00000000)
 
 enum state_type{
