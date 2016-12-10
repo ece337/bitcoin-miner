@@ -6,7 +6,7 @@ reg tb_clk, tb_n_rst, tb_beginComputation, tb_computationComplete;
 reg [MSG_SIZE - 1:0] tb_inputMsg;
 reg [255:0] tb_SHAoutput;
 
-SHAcomputationalBlock SHA
+shaComputationalBlock SHA
 (
 	.clk(tb_clk),
 	.n_rst(tb_n_rst),
