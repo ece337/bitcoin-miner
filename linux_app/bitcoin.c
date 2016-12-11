@@ -42,7 +42,7 @@ void constructBitcoinMessage(DWORD * store){
 void ucharsToDWORD(uchar* hash, DWORD * converted){
     int i;
 	for(i = 0; i < 8; i++){
-		converted[i] = *((DWORD *)(hash + (i * 4)));
+		converted[i] = (hash[(i*4)+0] << 24) + (hash[(i*4)+1] << 16) + (hash[(i*4)+2] << 8) + hash[(i*4)+3];
 	}
 }
 
@@ -56,6 +56,6 @@ void floatToDWORDstring(float number, DWORD * result){
 
 void calculateDifficulty(DWORD * store){
     //floatToDWORDstring(dcifficulty(DIFFICULTY),store);
-    store[0] = 0x4fffffff;
+    store[0] = 0x00ffffff;
     store[7] = 0xffffffff;
 }

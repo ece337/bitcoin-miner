@@ -12,7 +12,7 @@ DWORD reverseBits(DWORD x){
 }
 
 void writeValue(DWORD addr, DWORD value){
-    printf("Write to %08x, data: %08x\n", addr, value);
+    //printf("Write to %08x, data: %08x\n", addr, value);
     // BOOL bPass =  PCIE_Write32( hPCIe, PCIE_BAR0, addr, reverseBits(value));
     BOOL bPass =  PCIE_Write32( hPCIe, PCIE_BAR0, addr, value);
     if (!bPass){
@@ -28,7 +28,7 @@ DWORD readValue(DWORD addr){
         printf("ERROR: PCIe Read Failed.\n");
         exit(1);
     }
-    printf("Read from %08x, data: %08x\n", addr, value);
+    //printf("Read from %08x, data: %08x\n", addr, value);
     return value;
 }
 
@@ -39,16 +39,25 @@ void writeDifficultyMessage(DWORD * difficulty){
 	}
 }
 
+void pauseForTarget(){
+    DWORD state = 0;
+    writeValue(CONTROL_ADDRESS, state);
+    writeValue(STATUS_ADDRESS, 0x00000000);
+}
+
+void resumeFromTarget(){
+    DWORD state = 0x00000001;
+    writeValue(CONTROL_ADDRESS, state);
+}
+
 void pauseMining(){
     DWORD state = 0;
-    SET_PAUSE_BIT(state);
     writeValue(CONTROL_ADDRESS, state);
     writeValue(STATUS_ADDRESS, 0x00000000);
 }
 
 void resumeMining(){
-    DWORD state = 0;
-    UNSET_PAUSE_BIT(state);
+    DWORD state = 0x00000002;
     writeValue(CONTROL_ADDRESS, state);
 }
 
@@ -81,14 +90,14 @@ DWORD readFromStatusRegister(){
 void writeBitcoinMessage(DWORD * data){
 	int i;
     for(i = 0; i < BITCOIN_WORDS; i++){
-        writeValue(BITCOIN_ADDRESS + (i*FACTOR), data[BITCOIN_WORDS - i - 1]);
+        writeValue(BITCOIN_ADDRESS + (i*FACTOR), reverseBits(data[BITCOIN_WORDS - i - 1]));
     }
 }
 
 void readBitcoin(DWORD * data){
 	int i;
     for(i = 0; i < BITCOIN_WORDS; i++){
-        data[BITCOIN_WORDS - i - 1] = readValue(BITCOIN_ADDRESS + (i*FACTOR));
+        data[BITCOIN_WORDS - i - 1] = reverseBits(readValue(BITCOIN_ADDRESS + (i*FACTOR)));
     }
     data[BITCOIN_WORDS] = readValue(NONCE_ADDRESS);
 }

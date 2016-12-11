@@ -172,7 +172,7 @@ void print_hash(unsigned char hash[])
    printf("\n");
 }
 
-void sha(char * message, uchar* hash, int length){
+void sha(uchar * message, uchar* hash, int length){
 	SHA256_CTX ctx;
 	sha256_init(&ctx);
 	sha256_update(&ctx,message,length);

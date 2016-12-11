@@ -57,9 +57,21 @@ void printDWORDString(DWORD * output, int length){
     }
 }
 
+void DWORDToUCHAR(DWORD * input, uchar * output){
+    int i;
+    for(i = 0; i < 20; i++){
+        output[(i*4)+0] = (input[i] >> 24) & 0xFF;
+        output[(i*4)+1] = (input[i] >> 16) & 0xFF;
+        output[(i*4)+2] = (input[i] >> 8) & 0xFF;
+        output[(i*4)+3] = input[i] & 0xFF;
+    }
+}
+
 void verifySHAoutput(DWORD * output, DWORD * difficulty){
-	uchar hash[32];
-	sha((char *)output, hash, 80);
+	uchar * hash = malloc(32);
+    uchar * message = malloc(80);
+    DWORDToUCHAR(output,message);
+	sha(message, hash, 80);
     DWORD converted[8];
 	ucharsToDWORD(hash,converted);
 	if(compareHashes(converted, difficulty)){
@@ -75,27 +87,27 @@ void verifySHAoutput(DWORD * output, DWORD * difficulty){
 }
 
 void operation_loop(){
-    DWORD * difficulty = (DWORD*)malloc(sizeof(DWORD)*8);;
+    DWORD * difficulty = (DWORD*)malloc(sizeof(DWORD)*8);
     DWORD * bitcoinMessage = (DWORD*)malloc(sizeof(DWORD)*19);
     DWORD * bitcoin = (DWORD*)malloc(sizeof(DWORD)*20);
     state_t currentState;
+    pauseForTarget();
     calculateDifficulty(difficulty);
     writeDifficultyMessage(difficulty);
-
-    
-
+    resumeFromTarget();
+    sleep(1);
     while(1){
-	pauseMining();
-    constructBitcoinMessage(bitcoinMessage);
-    writeBitcoinMessage(bitcoinMessage);
-	printf("Writing Bitcoin:  ");
-	printDWORDString(bitcoinMessage,19);
-	printf("\n");
-    resumeMining();
+        pauseMining();
+        constructBitcoinMessage(bitcoinMessage);
+        writeBitcoinMessage(bitcoinMessage);
+        printf("Writing Bitcoin:  ");
+        printDWORDString(bitcoinMessage,19);
+        printf("\n");
+        resumeMining();
         printf("Mining...\n");
-        sleep(10);
+        sleep(1);
         while((currentState = getState()) == MINING){
-            sleep(2);
+            sleep(1);
             
             readBitcoin(bitcoin);
             printf("\n\n Status Update: ");
@@ -105,14 +117,15 @@ void operation_loop(){
             printf(" Difficulty:    ");
             printDWORDString(difficulty,8);
             
-            
-            
             printf("\n");
         }
         if(currentState == SUCCESSFUL){
             printf("Prospective Bitcoin Found!\n");
             printf("verifying...\n");
             readBitcoin(bitcoin);
+            printf("\n\n Current Candidate: ");
+            printDWORDString(bitcoin,20);
+            printf("\n\n");
             verifySHAoutput(bitcoin,difficulty);
         }else if(currentState == WAITING){
             printf("No Bitcoins found on current block.\n");

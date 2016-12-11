@@ -17,8 +17,6 @@ extern PCIE_HANDLE hPCIe;
 #define NONCE_ADDRESS (CRA + (10*FACTOR))
 #define SUCCESS_BIT_SET(x) (x & 0x00000002)
 #define STOPPED_BIT_SET(x) (x & 0x00000001)
-#define UNSET_PAUSE_BIT(x) (x |= 0xFFFFFFFF)
-#define SET_PAUSE_BIT(x) (x &= 0x00000000)
 
 enum state_type{
     MINING,
@@ -33,6 +31,8 @@ DWORD reverseBits(DWORD x);
 void writeValue(DWORD addr, DWORD value);
 DWORD readValue(DWORD addr);
 void writeDifficultyMessage(DWORD * difficulty);
+void pauseForTarget();
+void resumeFromTarget();
 void pauseMining();
 void resumeMining();
 state_t getState();

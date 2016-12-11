@@ -16,6 +16,6 @@
 #define SIG0(x) (ROTRIGHT(x,7) ^ ROTRIGHT(x,18) ^ ((x) >> 3))
 #define SIG1(x) (ROTRIGHT(x,17) ^ ROTRIGHT(x,19) ^ ((x) >> 10))
 
-void sha(char * message, uchar* hash, int length);
+void sha(uchar * message, uchar* hash, int length);
 
 #endif
