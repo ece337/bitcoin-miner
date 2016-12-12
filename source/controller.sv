@@ -14,6 +14,7 @@ module controller
 	output wire beginSHA,
 	output wire increment,
 	output wire btcFound,
+	output wire clrResults,
 	output wire error
 );
 
@@ -23,9 +24,10 @@ parameter [4:0] IDLE = 0,
                 SHABEGIN = 3,
                 SHAWAIT = 4,
                 SHACOMPLETE = 5,
-                BTCVALID = 6,
-                BTCINVALID = 7,
-                EIDLE = 8;
+                BTCINVALID = 6,
+                BTCVALID = 7,
+                CLRRESULTS = 8,
+                EIDLE = 9;
 
 reg [4:0] state, next_state;
 
@@ -42,6 +44,7 @@ assign reset = state == NEWMSG;
 assign beginSHA = state == SHABEGIN;
 assign increment = state == BTCINVALID;
 assign btcFound = state == BTCVALID;
+assign clrResults = state == CLRRESULTS;
 assign error = state == EIDLE;
 
 always_comb begin
@@ -49,7 +52,7 @@ always_comb begin
 	case (state)
 	IDLE: begin
 		next_state = newTarget ? NEWTARGET :
-		             newMsg    ? NEWMSG    :
+		             newMsg    ? SHABEGIN  :
 		                         IDLE;
 	end
 	NEWTARGET: begin
@@ -69,11 +72,14 @@ always_comb begin
                              valid              ? BTCVALID   :
                                                   SHACOMPLETE;
 	end
-	BTCVALID: begin
-		next_state = IDLE;
-	end
 	BTCINVALID: begin
 		next_state = overflow ? EIDLE : SHABEGIN;
+	end
+	BTCVALID: begin
+		next_state = CLRRESULTS;
+	end
+	CLRRESULTS: begin
+		next_state = IDLE;
 	end
 	EIDLE: begin
 		next_state = newTarget ? NEWTARGET :

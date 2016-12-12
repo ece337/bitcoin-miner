@@ -1,4 +1,14 @@
-add wave *
-add wave -position end  sim:/tb_topLevelMiner/DUT/beginComputationFromController
+add wave -position 0  sim:/tb_topLevelMiner/tb_clk
+add wave -position 1  sim:/tb_topLevelMiner/tb_n_rst
+add wave -position 2  sim:/tb_topLevelMiner/tb_slaveWrite
+add wave -position 3  sim:/tb_topLevelMiner/tb_slaveRead
+add wave -position 4  sim:/tb_topLevelMiner/tb_slaveAddr
+add wave -position 5  sim:/tb_topLevelMiner/tb_slaveWriteData
+add wave -position 6  sim:/tb_topLevelMiner/tb_slaveReadData
+add wave -position end  sim:/tb_topLevelMiner/DUT/INTCONTROLLER/state
+add wave -position 8  sim:/tb_topLevelMiner/DUT/btcFoundFromController
+add wave -position 8  sim:/tb_topLevelMiner/DUT/newTargetFromED
+add wave -position 9  sim:/tb_topLevelMiner/DUT/newMsgFromED
+add wave -position end  sim:/tb_topLevelMiner/DUT/registersFromSlave
 add wave -position end  sim:/tb_topLevelMiner/DUT/messageWithNonce
 add wave -position end  sim:/tb_topLevelMiner/DUT/SHAoutfromSHABlock

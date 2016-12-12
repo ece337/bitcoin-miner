@@ -19,7 +19,7 @@ topLevelMiner DUT
 localparam CLK_PERIOD = 20ns;
 localparam CLK_DELAY = 1ns;
 integer testcase = 0;
-integer length;
+//integer length;
 
 always begin
 	tb_clk = 1'b0;
@@ -40,8 +40,9 @@ endtask
 task loadTarget;
 	input [255:0] target;
 begin
-	tb_slaveWrite = 1'b1;
 	tb_slaveChipSelect = 1'b1;
+	tb_slaveWrite = 1'b1;
+	tb_slaveRead = 1'b0;
 
 	tb_slaveAddr = 9;
 	tb_slaveWriteData = target[255:224];
@@ -67,8 +68,11 @@ begin
 	tb_slaveAddr = 2;
 	tb_slaveWriteData = target[31:0];
 	#(CLK_PERIOD);
+
 	tb_slaveAddr = 1;
 	tb_slaveWriteData = 32'h00000001;
+	#(CLK_PERIOD);
+	tb_slaveWriteData = 32'h00000000;
 	#(CLK_PERIOD);
 	
 	tb_slaveWrite = 1'b0;
@@ -78,8 +82,10 @@ endtask
 task loadMessage;
 	input [607:0] msg;
 begin
-	tb_slaveWrite = 1'b1;
 	tb_slaveChipSelect = 1'b1;
+	tb_slaveWrite = 1'b1;
+	tb_slaveRead = 1'b0;
+
 	tb_slaveWriteData = msg[(607-((29 - 29) * 32)):(607-((29 - 29) * 32))-31];
 	tb_slaveAddr = 29;
 	#(CLK_PERIOD);
@@ -140,7 +146,10 @@ begin
 
 	tb_slaveAddr = 1;
 	tb_slaveWriteData = 32'h00000002;
-	#(CLK_PERIOD);	
+	#(CLK_PERIOD);
+	tb_slaveWriteData = 32'h00000000;
+	#(CLK_PERIOD);
+	
 	tb_slaveWrite = 1'b0;
 end
 endtask
@@ -184,11 +193,11 @@ initial begin
 	end
 	tb_slaveAddr = 10;
 	#(CLK_PERIOD);
-	assert(tb_slaveReadData == 32'd42) $info("nonce found is %0d", tb_slaveReadData);
-	else $error("Incorrect nonce found, expected 42", tb_slaveReadData);
+	assert(tb_slaveReadData == 32'd42) $info("Nonce found is %0d", tb_slaveReadData);
+	else $error("Incorrect nonce found: expected 2, received %0d", tb_slaveReadData);
 
 	// load msg 2
-	strlen("a", length);
+	//strlen("a", length);
 	loadMessage("a");
 
 	tb_slaveChipSelect = 1'b1;
@@ -200,33 +209,14 @@ initial begin
 	end
 	tb_slaveAddr = 10;
 	#(CLK_PERIOD);
-	assert(tb_slaveReadData == 32'h2) $info("Nonce found is %0d", tb_slaveReadData);
-	else $error("Incorrect nonce found, expected 2", tb_slaveReadData);
-
-	reset;
-	
-	// load msg 3
-	strlen("a", length);
-	loadMessage("a");
-
-	tb_slaveChipSelect = 1'b1;
-	tb_slaveRead = 1'b1;
-	tb_slaveAddr = 0;
-	#(CLK_PERIOD);
-	while(tb_slaveReadData != 32'h3) begin
-		#(CLK_PERIOD);
-	end
-	tb_slaveAddr = 10;
-	#(CLK_PERIOD);
-	$info("nonce found is %0d", tb_slaveReadData);
-	assert(tb_slaveReadData == 32'h2)
-	else $error("incorrect nonce found, expected 2", tb_slaveReadData);
+	assert(tb_slaveReadData == 32'd12) $info("Nonce found is %0d", tb_slaveReadData);
+	else $error("Incorrect nonce found: expected 12, received %0d", tb_slaveReadData);
 
 	// load target 3
 	loadTarget(256'h0100000000000000000000000000000000000000000000000000000000000000);
 
 	// load msg 4
-	strlen("a", length);
+	//strlen("a", length);
 	loadMessage("a");
 
 	tb_slaveChipSelect = 1'b1;
@@ -238,9 +228,8 @@ initial begin
 	end
 	tb_slaveAddr = 10;
 	#(CLK_PERIOD);
-	$info("nonce found is %0d, (%x)", tb_slaveReadData, tb_slaveReadData);
-	assert(tb_slaveReadData == 32'h176)
-	else $error("incorrect nonce found, expected 374", tb_slaveReadData);
+	assert(tb_slaveReadData == 32'd108) $info("Nonce found is %0d, (%08x)", tb_slaveReadData, tb_slaveReadData);
+	else $error("Incorrect nonce found: expected 108, received %0d", tb_slaveReadData);
 
 	// load target 4
 	loadTarget(256'h1000000000000000000000000000000000000000000000000000000000000000);
@@ -261,16 +250,15 @@ initial begin
 	end
 	tb_slaveAddr = 10;
 	#(CLK_PERIOD);
-	$info("nonce found is %0d, (%x)", tb_slaveReadData, tb_slaveReadData);
-	assert(tb_slaveReadData == 32'h2)
-	else $error("incorrect nonce found, expected 2", tb_slaveReadData);
+	assert(tb_slaveReadData == 32'd12) $info("Nonce found is %0d, (%08x)", tb_slaveReadData, tb_slaveReadData);
+	else $error("Incorrect nonce found: expected 12, received %0d", tb_slaveReadData);
 
-	reset;
+	//reset;
 
 	loadTarget(256'h0001000000000000000000000000000000000000000000000000000000000000);
 
 	// load msg 5
-	strlen("hello my name is inigo montoya", length);
+	//strlen("hello my name is inigo montoya", length);
 	loadMessage("hello my name is inigo montoya");
 
 	tb_slaveChipSelect = 1'b1;
@@ -282,9 +270,8 @@ initial begin
 	end
 	tb_slaveAddr = 10;
 	#(CLK_PERIOD);
-	$info("nonce found is %0d, (%x)", tb_slaveReadData, tb_slaveReadData);
-	assert(tb_slaveReadData == 32'h15346)
-	else $error("incorrect nonce found, expected 2", tb_slaveReadData);
+	assert(tb_slaveReadData == 32'h15346) $info("Nonce found is %0d, (%08x)", tb_slaveReadData, tb_slaveReadData);
+	else $error("Incorrect nonce found: expected 0x00015346, received %08x", tb_slaveReadData);
 	
 end
 

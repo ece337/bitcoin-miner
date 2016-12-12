@@ -2,7 +2,7 @@ module risingEdgeDetect
 (
 	input wire clk,
 	input wire n_rst,
-	input logic currentValue,
+	input wire currentValue,
 	output logic risingEdgeDetected
 );
 
