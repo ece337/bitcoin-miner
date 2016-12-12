@@ -21,3 +21,4 @@ covhtmlreport/
 #*#
 do_mapping.tcl
 mapped
+out.txt

@@ -13,55 +13,51 @@ module shaComputationalBlock #
 
 reg [1:0][511:0] processedMsg;
 reg [63:0][31:0] k, w_extSHA;
-wire preprocessDone, extComplete, comprComplete;
+wire extComplete, comprComplete;
 reg [6:0] extCount, comprCount;
 reg [31:0] aOut, bOut, cOut, dOut, eOut, fOut, gOut, hOut,
 h0, h1, h2, h3, h4, h5, h6, h7, nh0, nh1, nh2, nh3, nh4, nh5, nh6, nh7;
-logic beginExt, extEnable, comprEnable, chunkComplete, next_extEnable, next_comprEnable, next_computationComplete;
-reg [1:0] position, next_pos, startPos;
+logic loadInitial, extEnable, comprEnable, chunkComplete, next_extEnable, next_comprEnable, position, next_pos;
 
 always_ff @ (posedge clk, negedge n_rst) begin
 	if (!n_rst) begin
-		beginExt <= 1'b0;
+		loadInitial <= 1'b0;
 		extEnable <= 1'b0;
 		comprEnable <= 1'b0;
 		position <= '0;
 		chunkComplete <= 1'b0;
 		computationComplete <= 1'b0;
 	end else begin
-		beginExt <= preprocessDone  || (chunkComplete && position != 0);
+		loadInitial <= beginComputation || (chunkComplete && position);
 		extEnable <= next_extEnable;
 		comprEnable <= next_comprEnable;
 		position <= next_pos;
 		chunkComplete <= comprComplete;
-		computationComplete <= next_computationComplete;
+		computationComplete <= chunkComplete && ~position;
 	end
 end
 
 always_comb begin
 	// Next extEnable
 	next_extEnable = extEnable;
-	if (beginExt)
+	if (loadInitial)
 		next_extEnable = 1'b1;
 	else if (extComplete)
 		next_extEnable = 1'b0;
 	
 	// Next comprEnable
 	next_comprEnable = comprEnable;
-	if (beginExt)
+	if (loadInitial)
 		next_comprEnable = 1'b1;
 	else if (comprComplete)
 		next_comprEnable = 1'b0;
 	
 	// Next position
 	next_pos = position;
-	if (preprocessDone)
-		next_pos = startPos;
+	if (beginComputation)
+		next_pos = 1'b1;
 	else if (chunkComplete)
-		next_pos = position - 1;
-	
-	// Next computationComplete
-	next_computationComplete = chunkComplete && position == 0;
+		next_pos = ~position;
 end
 
 assign SHAoutput = {h0,h1,h2,h3,h4,h5,h6,h7};
@@ -132,20 +128,15 @@ assign k[62] = 32'hbef9a3f7;
 assign k[63] = 32'hc67178f2;
 
 preprocessor #(TOTAL_SIZE) PRE (
-	.clk(clk),
-	.n_rst(n_rst),
 	.inputMsg(inputMsg),
-	.beginPreprocess(beginComputation),
-	.processedMsg(processedMsg),
-	.position(startPos),
-	.done(preprocessDone)
+	.processedMsg(processedMsg)
 );
 
 extensionSHA EXTSHA (
 	.clk(clk),
 	.n_rst(n_rst),
 	.enable(extEnable),
-	.loadInitial(beginExt),
+	.loadInitial(loadInitial),
 	.chunk(processedMsg[position]),
 	.i(extCount),
 	.w(w_extSHA)
@@ -155,7 +146,7 @@ counter #(7, 16, 63) EXTCOUNT (
 	.clk(clk),
 	.n_rst(n_rst),
 	.enable(extEnable),
-	.restart(beginExt),
+	.restart(loadInitial),
 	.complete(extComplete),
 	.currentCount(extCount)
 );
@@ -164,7 +155,7 @@ compressionSHA COMPRSHA (
 	.clk(clk),
 	.n_rst(n_rst),
 	.enable(comprEnable),
-	.loadHash(beginExt),
+	.loadHash(loadInitial),
 	.hash(SHAoutput),
 	.w_i(w_extSHA[comprCount]),
 	.k_i(k[comprCount]),
@@ -182,7 +173,7 @@ counter #(7, 0, 63) COMPRCOUNT (
 	.clk(clk),
 	.n_rst(n_rst),
 	.enable(comprEnable),
-	.restart(beginExt),
+	.restart(loadInitial),
 	.complete(comprComplete),
 	.currentCount(comprCount)
 );

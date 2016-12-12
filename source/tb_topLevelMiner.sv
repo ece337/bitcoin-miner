@@ -168,8 +168,44 @@ initial begin
 	
 	reset;
 	
+	// load target 1
 	loadTarget(256'h1000000000000000000000000000000000000000000000000000000000000000);
+	
+	// load msg 1
+	//strlen("a", length);
+	loadMessage(608'h00400000e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855584cc3f01d00ffff);
 
+	tb_slaveChipSelect = 1'b1;
+	tb_slaveRead = 1'b1;
+	tb_slaveAddr = 0;
+	#(CLK_PERIOD);
+	while(tb_slaveReadData != 32'h3) begin
+		#(CLK_PERIOD);
+	end
+	tb_slaveAddr = 10;
+	#(CLK_PERIOD);
+	assert(tb_slaveReadData == 32'd42) $info("nonce found is %0d", tb_slaveReadData);
+	else $error("Incorrect nonce found, expected 42", tb_slaveReadData);
+
+	// load msg 2
+	strlen("a", length);
+	loadMessage("a");
+
+	tb_slaveChipSelect = 1'b1;
+	tb_slaveRead = 1'b1;
+	tb_slaveAddr = 0;
+	#(CLK_PERIOD);
+	while(tb_slaveReadData != 32'h3) begin
+		#(CLK_PERIOD);
+	end
+	tb_slaveAddr = 10;
+	#(CLK_PERIOD);
+	assert(tb_slaveReadData == 32'h2) $info("Nonce found is %0d", tb_slaveReadData);
+	else $error("Incorrect nonce found, expected 2", tb_slaveReadData);
+
+	reset;
+	
+	// load msg 3
 	strlen("a", length);
 	loadMessage("a");
 
@@ -186,10 +222,10 @@ initial begin
 	assert(tb_slaveReadData == 32'h2)
 	else $error("incorrect nonce found, expected 2", tb_slaveReadData);
 
-	reset;
-
+	// load target 3
 	loadTarget(256'h0100000000000000000000000000000000000000000000000000000000000000);
 
+	// load msg 4
 	strlen("a", length);
 	loadMessage("a");
 
@@ -206,6 +242,7 @@ initial begin
 	assert(tb_slaveReadData == 32'h176)
 	else $error("incorrect nonce found, expected 374", tb_slaveReadData);
 
+	// load target 4
 	loadTarget(256'h1000000000000000000000000000000000000000000000000000000000000000);
 	#(CLK_PERIOD * 10);
 
@@ -232,6 +269,7 @@ initial begin
 
 	loadTarget(256'h0001000000000000000000000000000000000000000000000000000000000000);
 
+	// load msg 5
 	strlen("hello my name is inigo montoya", length);
 	loadMessage("hello my name is inigo montoya");
 
