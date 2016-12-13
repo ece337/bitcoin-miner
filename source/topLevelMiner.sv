@@ -21,7 +21,7 @@ localparam LOG2_NUM_SHABLOCKS = 4;
 wire validFromComparator, overflowFromNonceGen, ltFromController,
 lmFromController, resetFromController, incFromController, errFromController,
 beginComputationFromController, newTargetFromED, newMsgFromED,
-btcFoundFromController, clrResultsFromController, completeFromSHAoutputCounter;
+btcFoundFromController, completeFromSHAoutputCounter;
 logic [NUM_SHABLOCKS - 1:0] beginSHA, computationCompleteFromSHA;
 logic [LOG2_NUM_SHABLOCKS - 1:0] countFromSHAoutputCounter;
 
@@ -72,13 +72,9 @@ controller INTCONTROLLER
 	.valid(validFromComparator),
 	.overflow(overflowFromNonceGen),
 	.finishedValidating(completeFromSHAoutputCounter),
-	.loadTarget(ltFromController),
-	.loadMsg(lmFromController),
-	.reset(resetFromController),
 	.beginSHA(beginComputationFromController),
 	.increment(incFromController),
 	.btcFound(btcFoundFromController),
-	.clrResults(clrResultsFromController),
 	.error(errFromController)
 );
 
@@ -152,9 +148,6 @@ begin
 		resultsReg[31:0] <= (nonce + countFromSHAoutputCounter - 1);
 		resultsReg[32] <= 1'b1;
 		resultsReg[33] <= 1'b1;
-	end else if(clrResultsFromController) begin
-		resultsReg[33] <= 1'b0;
-		resultsReg[32] <= 1'b0;
 	end else if(errFromController) begin
 		resultsReg[33] <= 1'b1;
 		resultsReg[32] <= 1'b0;

@@ -10,5 +10,4 @@ add wave -position 8  sim:/tb_topLevelMiner/DUT/btcFoundFromController
 add wave -position 8  sim:/tb_topLevelMiner/DUT/newTargetFromED
 add wave -position 9  sim:/tb_topLevelMiner/DUT/newMsgFromED
 add wave -position end  sim:/tb_topLevelMiner/DUT/registersFromSlave
-add wave -position end  sim:/tb_topLevelMiner/DUT/messageWithNonce
 add wave -position end  sim:/tb_topLevelMiner/DUT/SHAoutfromSHABlock
