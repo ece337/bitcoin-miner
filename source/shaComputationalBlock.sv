@@ -24,9 +24,10 @@ always_ff @ (posedge clk, negedge n_rst) begin
 		loadInitial <= 1'b0;
 		extEnable <= 1'b0;
 		comprEnable <= 1'b0;
-		position <= '0;
+		position <= 1'b0;
 		chunkComplete <= 1'b0;
 		computationComplete <= 1'b0;
+		processedMsg <= '0;
 	end else begin
 		loadInitial <= beginComputation || (chunkComplete && position);
 		extEnable <= next_extEnable;
@@ -34,6 +35,7 @@ always_ff @ (posedge clk, negedge n_rst) begin
 		position <= next_pos;
 		chunkComplete <= comprComplete;
 		computationComplete <= chunkComplete && ~position;
+		processedMsg <= {inputMsg, 8'h80, 312'h0, 64'd640}; // append 1, then 0's, then length of 640
 	end
 end
 
@@ -127,10 +129,10 @@ assign k[61] = 32'ha4506ceb;
 assign k[62] = 32'hbef9a3f7;
 assign k[63] = 32'hc67178f2;
 
-preprocessor #(TOTAL_SIZE) PRE (
+/*preprocessor #(TOTAL_SIZE) PRE (
 	.inputMsg(inputMsg),
 	.processedMsg(processedMsg)
-);
+);*/
 
 extensionSHA EXTSHA (
 	.clk(clk),

@@ -51,6 +51,8 @@ begin
 	testcase = testcase + 1;
 	assert (tb_SHAoutput == expectedOutput) $info("Test case %0d: SUCCESS - SHA output is correct!\n", testcase);
 	else $error("Test case %0d: FAILURE - SHA output did not match expected output\n", testcase);
+	
+	#(CLK_PERIOD);
 end
 endtask
 

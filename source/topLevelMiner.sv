@@ -28,7 +28,6 @@ logic [LOG2_NUM_SHABLOCKS - 1:0] countFromSHAoutputCounter;
 logic [NONCE_SIZE - 1:0] nonce;
 
 wire [MESSAGE_SIZE - 1:0] messageFromRegisters;
-wire [TOTAL_SIZE - 1:0] messageWithNonce;
 
 logic [NUMBER_OF_REGISTERS - 1:0][DATAWIDTH - 1:0] registersFromSlave;
 wire [NUM_SHABLOCKS - 1:0][255:0] SHAoutfromSHABlock;
@@ -36,7 +35,6 @@ logic [NUM_SHABLOCKS - 1:0][255:0] finishedSHA;
 logic [33:0] resultsReg;
 
 assign messageFromRegisters = registersFromSlave[29:11];
-assign messageWithNonce = {messageFromRegisters, nonce};
 assign validFromComparator = finishedSHA[countFromSHAoutputCounter] < registersFromSlave[9:2];
 
 my_slave #(

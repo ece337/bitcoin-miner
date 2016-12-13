@@ -33,7 +33,7 @@ begin
 	tb_n_rst = 1'b0;
 	#(CLK_PERIOD*2);
 	tb_n_rst = 1'b1;
-	#(CLK_PERIOD);
+	#(CLK_PERIOD*2);
 end
 endtask
 
