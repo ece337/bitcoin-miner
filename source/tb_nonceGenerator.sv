@@ -1,8 +1,16 @@
+// File name:   tb_nonceGenerator.sv
+// Created:     12/3/2016
+// Author:      Arjun Bery
+// Lab Section: 337-01
+// Version:     1.0 Nonce generator test bench
+// Description: Test bench for nonce generator module
+
 module tb_nonceGenerator ();
 
 reg tb_clk, tb_n_rst, tb_enable, tb_restart, tb_overflow;
 reg [31:0] tb_nonce;
 
+// nonce generator instance
 nonceGenerator #(0,1) DUT
 (
 	.clk(tb_clk),

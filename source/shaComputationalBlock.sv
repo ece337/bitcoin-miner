@@ -1,17 +1,24 @@
+// File name:   shaComputationalBlock.sv
+// Created:     11/28/2016
+// Author:      Weston Spalding
+// Lab Section: 337-01
+// Version:     4.0 SHA computational block w/ updated preprocess
+// Description: SHA computational block that takes a potential Bitcoin message as input and computes SHA 256 output
+
 module shaComputationalBlock #
 (
-	parameter TOTAL_SIZE = 640
+	parameter TOTAL_SIZE = 640 // size of Bitcoin message
 )
 (
-	input wire clk,
-	input wire n_rst,
-	input reg [TOTAL_SIZE - 1:0] inputMsg,
-	input wire beginComputation,
-	output reg computationComplete,
-	output reg [255:0] SHAoutput
+	input wire clk,                        // clock
+	input wire n_rst,                      // n_reset
+	input reg [TOTAL_SIZE - 1:0] inputMsg, // Bitcoin message including nonce
+	input wire beginComputation,           // signal to begin SHA 256 calculation
+	output reg computationComplete,        // output signal asserted when output is calculated
+	output reg [255:0] SHAoutput           // SHA 256 output
 );
 
-reg [1:0][511:0] processedMsg;
+reg [1:0][511:0] processedMsg; // preprocessed message
 reg [63:0][31:0] k, w_extSHA;
 wire extComplete, comprComplete;
 reg [6:0] extCount, comprCount;
@@ -29,41 +36,42 @@ always_ff @ (posedge clk, negedge n_rst) begin
 		computationComplete <= 1'b0;
 		processedMsg <= '0;
 	end else begin
-		loadInitial <= beginComputation || (chunkComplete && position);
+		loadInitial <= beginComputation || (chunkComplete && position); // assert when begin computation or after first chunk has completed
 		extEnable <= next_extEnable;
 		comprEnable <= next_comprEnable;
 		position <= next_pos;
-		chunkComplete <= comprComplete;
-		computationComplete <= chunkComplete && ~position;
-		processedMsg <= {inputMsg, 8'h80, 312'h0, 64'd640}; // append 1, then 0's, then length of 640
+		chunkComplete <= comprComplete; // chunk is complete when compression loop is done
+		computationComplete <= chunkComplete && ~position; // computation is complete when 2nd chunk is complete
+		processedMsg <= {inputMsg, 8'h80, 312'h0, 64'd640}; // preprocess message: append 1, then 0's, then length of 640
 	end
 end
 
 always_comb begin
 	// Next extEnable
 	next_extEnable = extEnable;
-	if (loadInitial)
+	if (loadInitial) // enable extension loop after loading initial values
 		next_extEnable = 1'b1;
-	else if (extComplete)
+	else if (extComplete) // disable extension loop once all iterations are done
 		next_extEnable = 1'b0;
 	
 	// Next comprEnable
 	next_comprEnable = comprEnable;
-	if (loadInitial)
+	if (loadInitial) // enable compression loop after loading initial values
 		next_comprEnable = 1'b1;
-	else if (comprComplete)
+	else if (comprComplete) // disable compression loop once all iterations are done
 		next_comprEnable = 1'b0;
 	
 	// Next position
 	next_pos = position;
-	if (beginComputation)
+	if (beginComputation) // start at position index 1 with every new computation
 		next_pos = 1'b1;
-	else if (chunkComplete)
+	else if (chunkComplete) // decrease position after every chunk is complete
 		next_pos = ~position;
 end
 
-assign SHAoutput = {h0,h1,h2,h3,h4,h5,h6,h7};
+assign SHAoutput = {h0,h1,h2,h3,h4,h5,h6,h7}; // SHA 256 output is 8 hash values appended together
 
+// initialize k array
 assign k[0] = 32'h428a2f98;
 assign k[1] = 32'h71374491;
 assign k[2] = 32'hb5c0fbcf;
@@ -129,11 +137,7 @@ assign k[61] = 32'ha4506ceb;
 assign k[62] = 32'hbef9a3f7;
 assign k[63] = 32'hc67178f2;
 
-/*preprocessor #(TOTAL_SIZE) PRE (
-	.inputMsg(inputMsg),
-	.processedMsg(processedMsg)
-);*/
-
+// extension loop calculator instance
 extensionSHA EXTSHA (
 	.clk(clk),
 	.n_rst(n_rst),
@@ -144,6 +148,7 @@ extensionSHA EXTSHA (
 	.w(w_extSHA)
 );
 
+// extension loop index counter instance
 counter #(7, 16, 63) EXTCOUNT (
 	.clk(clk),
 	.n_rst(n_rst),
@@ -153,6 +158,7 @@ counter #(7, 16, 63) EXTCOUNT (
 	.currentCount(extCount)
 );
 
+// compression loop calculator instance
 compressionSHA COMPRSHA (
 	.clk(clk),
 	.n_rst(n_rst),
@@ -171,6 +177,7 @@ compressionSHA COMPRSHA (
 	.h(hOut)
 );
 
+// compression loop index counter instance
 counter #(7, 0, 63) COMPRCOUNT (
 	.clk(clk),
 	.n_rst(n_rst),
@@ -181,7 +188,7 @@ counter #(7, 0, 63) COMPRCOUNT (
 );
 
 always_ff @ (posedge clk, negedge n_rst) begin
-	if (!n_rst) begin
+	if (!n_rst) begin // initialize hash values
 		h0 <= 32'h6a09e667;
 		h1 <= 32'hbb67ae85;
 		h2 <= 32'h3c6ef372;
@@ -202,6 +209,7 @@ always_ff @ (posedge clk, negedge n_rst) begin
 	end
 end
 
+
 always_comb begin
 	nh0 = h0;
 	nh1 = h1;
@@ -211,7 +219,7 @@ always_comb begin
 	nh5 = h5;
 	nh6 = h6;
 	nh7 = h7;
-	if (beginComputation) begin
+	if (beginComputation) begin // initialize hash values
 		nh0 = 32'h6a09e667;
 		nh1 = 32'hbb67ae85;
 		nh2 = 32'h3c6ef372;
@@ -220,7 +228,7 @@ always_comb begin
 		nh5 = 32'h9b05688c;
 		nh6 = 32'h1f83d9ab;
 		nh7 = 32'h5be0cd19;
-	end else if (chunkComplete) begin
+	end else if (chunkComplete) begin // update hash values after each chunk
 		nh0 = h0 + aOut;
 		nh1 = h1 + bOut;
 		nh2 = h2 + cOut;

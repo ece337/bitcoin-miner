@@ -1,9 +1,17 @@
+// File name:   tb_topLevelMiner.sv
+// Created:     12/3/2016
+// Author:      Weston Spalding
+// Lab Section: 337-01
+// Version:     4.0 Top level module test bench w/ parallel SHA blocks and outputted nonces
+// Description: Test bench for top level module
+
 module tb_topLevelMiner();
 
 reg tb_clk, tb_n_rst, tb_slaveWrite, tb_slaveRead, tb_slaveChipSelect;
 reg [4:0] tb_slaveAddr;
 reg [31:0] tb_slaveWriteData, tb_slaveReadData;
 
+// top level module instance
 topLevelMiner DUT
 (
 	.clk(tb_clk),
@@ -40,10 +48,12 @@ endtask
 task loadTarget;
 	input [255:0] target;
 begin
+	// enable write and chip select; disable read
 	tb_slaveChipSelect = 1'b1;
 	tb_slaveWrite = 1'b1;
 	tb_slaveRead = 1'b0;
 
+	// write to target addresses
 	tb_slaveAddr = 9;
 	tb_slaveWriteData = target[255:224];
 	#(CLK_PERIOD);
@@ -69,6 +79,7 @@ begin
 	tb_slaveWriteData = target[31:0];
 	#(CLK_PERIOD);
 
+	// update status register to new target cue
 	tb_slaveAddr = 1;
 	tb_slaveWriteData = 32'h00000001;
 	#(CLK_PERIOD);
@@ -82,10 +93,12 @@ endtask
 task loadMessage;
 	input [607:0] msg;
 begin
+	// enable write and chip select; disable read
 	tb_slaveChipSelect = 1'b1;
 	tb_slaveWrite = 1'b1;
 	tb_slaveRead = 1'b0;
-
+	
+	// write to message addresses
 	tb_slaveWriteData = msg[(607-((29 - 29) * 32)):(607-((29 - 29) * 32))-31];
 	tb_slaveAddr = 29;
 	#(CLK_PERIOD);
@@ -143,7 +156,8 @@ begin
 	tb_slaveWriteData = msg[(607-((29 - 11) * 32)):(607-((29 - 11) * 32))-31];
 	tb_slaveAddr = 11;
 	#(CLK_PERIOD);
-
+	
+	// update status register to new message cue
 	tb_slaveAddr = 1;
 	tb_slaveWriteData = 32'h00000002;
 	#(CLK_PERIOD);
@@ -208,15 +222,15 @@ initial begin
 	loadMessage("a");
 	waitForNonce(12);
 
-	// load target 3
+	// load target 2
 	loadTarget(256'h0100000000000000000000000000000000000000000000000000000000000000);
 
-	// load msg 4
+	// load msg 3
 	//strlen("a", length);
 	loadMessage("a");
 	waitForNonce(108);
 
-	// load target 4
+	// load target 3
 	loadTarget(256'h1000000000000000000000000000000000000000000000000000000000000000);
 	#(CLK_PERIOD * 10);
 
@@ -228,8 +242,10 @@ initial begin
 	tb_slaveWrite = 1'b0;
 	#(CLK_PERIOD * 2);
 	
+	// process current message with new target
 	waitForNonce(12);
-
+	
+	// load target 4
 	loadTarget(256'h0001000000000000000000000000000000000000000000000000000000000000);
 
 	// load msg 5

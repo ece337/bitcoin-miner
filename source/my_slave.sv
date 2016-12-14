@@ -1,9 +1,9 @@
-// File name : custom_slave.sv
-// Author : Ishaan Biswas
-// Created : 03/29/2015
-// Version 1.0 
-// Description : Demo example to illustrate slave interface usage
-
+// File name:   my_slave.sv
+// Created:     12/5/2016
+// Author:      Weston Spalding
+// Lab Section: 337-01
+// Version:     2.0 Avalon slave interface w/ Bitcoin specifics
+// Description: Avalon slave interface
 
 module my_slave #(
 	parameter MASTER_ADDRESSWIDTH = 26 ,  	// ADDRESSWIDTH specifies how many addresses the Master can address 
@@ -63,29 +63,21 @@ state_t state, nextState;
 
 // Slave side 
 always_ff @ ( posedge clk ) begin 
-  if(!reset_n)
-  	begin
+	if(!reset_n) begin
     		slave_readdata <= 32'h0;
  	      	csr_registers <= '0;
-  	end
-  else 
-  	begin
-	  csr_registers[10] <= foundNonce;
-	  csr_registers[0][0] <= complete;
-	  csr_registers[0][1] <= found;
-  	  if(slave_write && slave_chipselect && (slave_address >= 0) && (slave_address < NUMREGS))
-  	  	begin
+  	end else begin
+		csr_registers[10] <= foundNonce; // write nonce that produces valid Bitcoin
+		csr_registers[0][0] <= complete; // write status of SHA computation
+		csr_registers[0][1] <= found;    // write status of Bitcoin found or not
+  		if(slave_write && slave_chipselect && (slave_address >= 0) && (slave_address < NUMREGS)) begin
   	  	   csr_registers[slave_address] <= slave_writedata;  // Write a value to a CSR register
-  	  	end
-  	  else if(slave_read && slave_chipselect  && (slave_address >= 0) && (slave_address < NUMREGS)) // reading a CSR Register
-  	    	begin
-       		// Send a value being requested by a master. 
-       		// If the computation is small you may compute directly and send it out to the master directly from here.
-  	    	   slave_readdata <= csr_registers[slave_address];
-  	    	end
-  	 end
+  	  	end else if(slave_read && slave_chipselect  && (slave_address >= 0) && (slave_address < NUMREGS)) begin // reading a CSR Register
+			// Send a value being requested by a master. 
+			// If the computation is small you may compute directly and send it out to the master directly from here.
+			slave_readdata <= csr_registers[slave_address];
+		end
+	end
 end
 
 endmodule
-
-

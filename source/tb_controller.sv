@@ -1,9 +1,16 @@
+// File name:   tb_controller.sv
+// Created:     12/3/2016
+// Author:      Arjun Bery
+// Lab Section: 337-01
+// Version:     1.0 Controller test bench
+// Description: Test bench for controller module
+
 module tb_controller ();
 
 reg tb_clk, tb_n_rst, tb_newTarget, tb_newMsg, tb_complete, tb_valid,
-tb_overflow, tb_loadTarget, tb_loadMsg, tb_reset, tb_beginSHA,
-tb_increment, tb_loadResults, tb_error;
+tb_overflow, tb_finishedValidating, tb_beginSHA, tb_increment, tb_btcFound, tb_error;
 
+// controller instance
 controller DUT
 (
 	.clk(tb_clk),
@@ -13,12 +20,10 @@ controller DUT
 	.complete(tb_complete),
 	.valid(tb_valid),
 	.overflow(tb_overflow),
-	.loadTarget(tb_loadTarget),
-	.loadMsg(tb_loadMsg),
-	.reset(tb_reset),
+	.finishedValidating(tb_finishedValidating),
 	.beginSHA(tb_beginSHA),
 	.increment(tb_increment),
-	.loadResults(tb_loadResults),
+	.btcFound(tb_btcFound),
 	.error(tb_error)
 );
 
@@ -43,10 +48,10 @@ end
 endtask
 
 task checkOutputs;
-	input [6:0] outputArray;
+	input [3:0] outputArray;
 	output integer same;
 begin
-	same = outputArray == {tb_loadTarget, tb_loadMsg, tb_reset, tb_beginSHA, tb_increment, tb_loadResults, tb_error};
+	same = outputArray == {tb_beginSHA, tb_increment, tb_btcFound, tb_error};
 end
 endtask
 
@@ -58,53 +63,82 @@ initial begin
 	tb_complete = 1'b0;
 	tb_valid = 1'b0;
 	tb_overflow = 1'b0;
+	tb_finishedValidating = 1'b0;
 	
 	reset;
 	
-	#(0.01)
+	#(CLK_PERIOD/2);
 	
+	// test new target state
 	tb_newTarget = 1'b1;
 	#(CLK_PERIOD);
 	tb_newTarget = 1'b0;
-	checkOutputs(7'b1000000, check);
-	assert(check == 1'b1)
-	else $error("incorrect loadTarget");
+	checkOutputs(4'b0000, check);
+	assert(check == 1)
+	else $error("incorrect outputs");
+	#(CLK_PERIOD);
 	
+	// test begin SHA state
 	tb_newMsg = 1'b1;
 	#(CLK_PERIOD);
 	tb_newMsg = 1'b0;
-	checkOutputs(7'b0100000, check);
-	assert(check == 1)
-	else $error("incorrect loadMsg");
-
-	#(CLK_PERIOD);
-	checkOutputs(7'b0001000, check);
+	checkOutputs(4'b1000, check);
 	assert(check == 1)
 	else $error("incorrect beginSHA");
-
 	#(CLK_PERIOD);
-	checkOutputs(7'b0000000, check);
-	assert(check == 1)
-	else $error("incorrect outputs");
-
-	#(CLK_PERIOD);
-	checkOutputs(7'b0000000, check);
-	assert(check == 1)
-	else $error("incorrect outputs");
-
-	#(CLK_PERIOD);
-	checkOutputs(7'b0000000, check);
-	assert(check == 1)
-	else $error("incorrect outputs");
-
-	#(CLK_PERIOD);
-	checkOutputs(7'b0000000, check);
-	assert(check == 1)
-	else $error("incorrect outputs");
-
 	
-	// Test case 1 - check basic incrementing
+	// test SHA wait state
+	#(CLK_PERIOD*4);
+	checkOutputs(4'b0000, check);
+	assert(check == 1)
+	else $error("incorrect outputs");
+	#(CLK_PERIOD);
 	
+	// test SHA complete + invalid Bitcoin
+	tb_complete = 1'b1;
+	tb_finishedValidating = 1'b1;
+	#(CLK_PERIOD*2);
+	tb_complete = 1'b0;
+	tb_finishedValidating = 1'b0;
+	checkOutputs(4'b0100, check);
+	assert(check == 1)
+	else $error("incorrect increment");
+	#(CLK_PERIOD);
+	
+	// test SHA complete + valid Bitcoin
+	tb_complete = 1'b1;
+	tb_valid = 1'b1;
+	#(CLK_PERIOD*2);
+	tb_complete = 1'b0;
+	tb_valid = 1'b0;
+	checkOutputs(4'b0010, check);
+	assert(check == 1)
+	else $error("incorrect btcFound");
+	#(CLK_PERIOD);
+	
+	// test eidle state
+	// idle -> begin SHA
+	tb_newMsg = 1'b1;
+	#(CLK_PERIOD);
+	tb_newMsg = 1'b0;
+	// begin SHA -> SHA wait
+	#(CLK_PERIOD);
+	// SHA wait -> SHA complete
+	tb_complete = 1'b1;
+	#(CLK_PERIOD);
+	tb_complete = 1'b0;
+	// SHA complete -> invalid Bitcoin
+	tb_finishedValidating = 1'b1;
+	#(CLK_PERIOD);
+	tb_finishedValidating = 1'b0;
+	// invalid Bitcoin -> eidle
+	tb_overflow = 1'b1;
+	#(CLK_PERIOD);
+	tb_overflow = 1'b0;
+	checkOutputs(4'b0001, check);
+	assert (check == 1)
+	else $error("incorrect error flag");
+	#(CLK_PERIOD);
 
 	$info("All tests complete");
 end

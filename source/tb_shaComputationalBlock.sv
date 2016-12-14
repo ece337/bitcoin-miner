@@ -1,3 +1,11 @@
+// File name:   tb_shaComputationalBlock.sv
+// Created:     12/3/2016
+// Author:      Arjun Bery
+// Lab Section: 337-01
+// Version:     3.0 SHA computational block test bench w/ Bitcoin sized inputs
+// Description: Test bench for SHA computational block
+//              Expected outputs are generated from online SHA 256 calculator
+
 module tb_shaComputationalBlock ();
 
 localparam MSG_SIZE = 640;
@@ -6,6 +14,7 @@ reg tb_clk, tb_n_rst, tb_beginComputation, tb_computationComplete;
 reg [MSG_SIZE - 1:0] tb_inputMsg;
 reg [255:0] tb_SHAoutput;
 
+// shaComputationalBlock instance
 shaComputationalBlock SHA
 (
 	.clk(tb_clk),
@@ -40,11 +49,11 @@ task sendMsg;
 	input [MSG_SIZE - 1:0] msg;
 	input [255:0] expectedOutput;
 begin
-	tb_inputMsg = msg;
-	tb_beginComputation = 1'b1;
+	tb_inputMsg = msg; // assign input message
+	tb_beginComputation = 1'b1; // begin computation
 	#(CLK_PERIOD);
 	tb_beginComputation = 1'b0;
-	while(~tb_computationComplete) begin
+	while(~tb_computationComplete) begin // wait until computation is complete
 		#(CLK_PERIOD);
 	end
 	
@@ -93,7 +102,7 @@ initial begin
 	// Test case 6 - check correct SHA output for input with multiple chunks '00400000e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855584cc3f01d00ffff'
 	sendMsg(640'h00400000e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855584cc3f01d00ffff00000001, 256'h12ab50d488d6ed958b8a51e32137b70a37609a92b7222046cccfad644c8a3f6b);
 	
-	// Test case 6 - check correct SHA output for input with multiple chunks '00000014'
+	// Test case 7 - check correct SHA output for input with multiple chunks '00000014'
 	sendMsg({640'h00000014}, 256'ha8c1246c3560a961f4d580adc0917cbfe75b571dec02d7e8b6a2bbb23b51cec7);
 	
 end
